@@ -1,5 +1,5 @@
 [project]
-name = "hybrid-agent-architecture"
+name = "HTN-GOAP-MORL-Planner"
 version = "0.1.0"
 description = """
 A research prototype for a hybrid agent architecture that combines

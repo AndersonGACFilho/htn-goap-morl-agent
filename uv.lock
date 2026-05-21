@@ -374,7 +374,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hybrid-agent-architecture"
+name = "htn-goap-morl-planner"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
