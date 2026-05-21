@@ -1,0 +1,49 @@
+[project]
+name = "hybrid-agent-architecture"
+version = "0.1.0"
+description = """
+A research prototype for a hybrid agent architecture that combines
+Hierarchical Task Network planning, GOAP-inspired tactical reasoning,
+and multi-objective reinforcement learning.
+
+The system separates decision-making into three layers: HTN defines
+long-term goals and decomposes them into subtasks, the GOAP-inspired
+layer configures tactical priorities and intentions, and the MORL layer
+selects concrete actions by optimizing multiple learned objectives.
+
+The goal is to investigate how symbolic planning and reinforcement
+learning can be integrated to produce agents with interpretable planning,
+adaptive execution, and real-time decision-making.
+"""
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "torch",
+    "gymnasium",
+    "matplotlib",
+    "pydantic",
+    "pytest",
+    "black",
+    "flake8",
+    "pygame",
+    "ruff",
+    "mypy",
+    "pre-commit",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.black]
+target-version = ["py312"]
+line-length = 88
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+strict = false
