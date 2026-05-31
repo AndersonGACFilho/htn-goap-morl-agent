@@ -1,0 +1,330 @@
+﻿--- FILE: D:\Masters\GOAP and HTN\pyproject.toml ---
+[project]
+name = "hybrid-agent-architecture"
+version = "0.1.0"
+description = """
+A research prototype for a hybrid agent architecture that combines
+Hierarchical Task Network planning, GOAP-inspired tactical reasoning,
+and multi-objective reinforcement learning.
+
+The system separates decision-making into three layers: HTN defines
+long-term goals and decomposes them into subtasks, the GOAP-inspired
+layer configures tactical priorities and intentions, and the MORL layer
+selects concrete actions by optimizing multiple learned objectives.
+
+The goal is to investigate how symbolic planning and reinforcement
+learning can be integrated to produce agents with interpretable planning,
+adaptive execution, and real-time decision-making.
+"""
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "torch",
+    "gymnasium",
+    "matplotlib",
+    "pydantic",
+    "pytest",
+    "black",
+    "flake8",
+    "pygame",
+    "ruff",
+    "mypy",
+    "pre-commit",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.black]
+target-version = ["py312"]
+line-length = 88
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+strict = false
+
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\agent\agent_base.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\agent\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\main.py ---
+if __name__ == "__main__":
+    print("Hello World")
+
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\actions\action.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\actions\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\agent\agent.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\agent\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\goals\goal.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\goals\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\planner\planner.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\planner\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\goap\utils\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\main.py ---
+if __name__ == "__main__":
+    print("Hello World")
+
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\actions\action.py ---
+class Action:
+    """
+    Base class for all actions
+    It contains the basic methods and fields.
+    """
+
+    pass
+
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\actions\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\agent\agent.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\agent\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\planner\planner.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\planner\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\tasks\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\tasks\domains\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\tasks\types\compound_task.py ---
+from htn.tasks.types.task import Task
+
+
+class Method:
+    """
+    Is a method of a compound task.
+    Basically a set of tasks that can be executed in a specific order.
+    and the method has preconditions and effects.
+    """
+
+    preconditions: dict[str, bool] = {}
+    effects: dict[str, bool] = {}
+    tasks: list[Task] = []
+
+    def __init__(self):
+        super().__init__()
+
+    def get_preconditions(self) -> dict[str, bool]:
+        return self.preconditions
+
+    def get_effects(self) -> dict[str, bool]:
+        return self.effects
+
+    def get_task(self, index: int) -> Task:
+        return self.tasks[index]
+
+    def get_tasks(self) -> list[Task]:
+        return self.tasks
+
+
+class CompoundTask(Task):
+    """
+    A compound task is a task that contains other tasks.
+    """
+
+    methods: list[Method] = []
+
+    # Constructor
+    def __init__(self):
+        """
+        Initialize a compound task.
+        """
+        super().__init__()
+
+    # Getters
+    def get_methods(self) -> list[Method]:
+        """
+        Get the methods of the compound task.
+
+        :return: The methods of the compound task
+        """
+        return self.methods
+
+    def get_method(self, index: int) -> Method:
+        """
+        Get a method by its index.
+
+        :param index: The index of the method to retrieve
+        :return: The method at the specified index
+        """
+        return self.methods[index]
+
+    def get_method_by_preconditions(
+        self, preconditions: dict[str, bool]
+    ) -> Method | None:
+        """
+        Get a method by its preconditions.
+
+        :param preconditions: The preconditions to search for
+        :return: The method with matching preconditions, or None if not found
+        """
+        for method in self.methods:
+            if method.get_preconditions() == preconditions:
+                print(f"Method found for preconditions: {preconditions}")
+                return method
+        print(f"Method not found for preconditions: {preconditions}")
+        return None
+
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\tasks\types\primitive_task.py ---
+from htn.actions.action import Action
+from htn.tasks.types.task import Task
+
+
+class PrimitiveTask(Task):
+    """
+    A primitive task is a task that cannot be decomposed further and represents a basic action or operation.
+    """
+
+    preconditions: dict[str, bool] = {}
+    effects: dict[str, bool] = {}
+    actions: list[Action] = []
+
+    # Constructor
+    def __init__(self):
+        """
+        Initialize the new instance of the Task class.
+        """
+        pass
+
+    def get_preconditions(self) -> dict[str, bool]:
+        """
+        Get the preconditions of the task.
+        :return: The list of preconditions
+        """
+        return self.preconditions
+
+    def get_effects(self) -> dict[str, bool]:
+        """
+        Get the effects of the task.
+        :return: The list of effects
+        """
+        return self.effects
+
+    def get_actions(self) -> list[Action]:
+        """
+        Get the actions that can be performed by the task.
+        :return: The list of actions
+        """
+        return self.actions
+
+    # Representation methods
+    def __str__(self):
+        """
+        ToString method
+        :return: A string representation of the task
+        """
+        return str(
+            {
+                "type": self.__class__.__name__,
+                "preconditions": self.preconditions,
+                "effects": self.effects,
+            }
+        )
+
+    def __repr__(self):
+        """
+        Representation method
+        :return: A string representation of the task
+        """
+        return str(self)
+
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\tasks\types\task.py ---
+from abc import ABC
+
+
+class Task(ABC):
+    """
+    Base class for all tasks
+    It contains the basic methods and fields.
+    """
+
+    pass
+
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\htn\tasks\types\__init__.py ---
+
+--- END OF FILE ---
+
+--- FILE: D:\Masters\GOAP and HTN\src\world\__init__.py ---
+
+--- END OF FILE ---
