@@ -1,32 +1,7 @@
+from htn.tasks.types.method import Method
+from htn.tasks.types.preconditions import are_preconditions_satisfied
 from htn.tasks.types.task import Task
-
-
-class Method:
-    """
-    Method is a class that represents a method of a compound task.
-
-    It contains preconditions, effects, and a list of tasks that
-    can be executed in a specific order.
-    """
-
-    preconditions: dict[str, bool] = {}
-    effects: dict[str, bool] = {}
-    tasks: list[Task] = []
-
-    def __init__(self):
-        super().__init__()
-
-    def get_preconditions(self) -> dict[str, bool]:
-        return self.preconditions
-
-    def get_effects(self) -> dict[str, bool]:
-        return self.effects
-
-    def get_task(self, index: int) -> Task:
-        return self.tasks[index]
-
-    def get_tasks(self) -> list[Task]:
-        return self.tasks
+from htn.world.state import WorldState
 
 
 class CompoundTask(Task):
@@ -34,14 +9,17 @@ class CompoundTask(Task):
     A compound task is a task that contains other tasks.
     """
 
-    methods: list[Method] = []
+    methods: list[Method]
 
     # Constructor
-    def __init__(self):
+    def __init__(
+        self,
+        methods: list[Method],
+    ):
         """
         Initialize a compound task.
         """
-        super().__init__()
+        self.methods = methods
 
     # Getters
     def get_methods(self) -> list[Method]:
@@ -61,18 +39,16 @@ class CompoundTask(Task):
         """
         return self.methods[index]
 
-    def get_method_by_preconditions(
-        self, preconditions: dict[str, bool]
-    ) -> Method | None:
+    def get_feasible_methods(self, world_state: WorldState) -> list[Method]:
         """
-        Get a method by its preconditions.
-
-        :param preconditions: The preconditions to search for
-        :return: The method with matching preconditions, or None if not found
+        Get the possible methods for the given world state, validated by preconditions.
+        :param world_state: The world state to validate preconditions for
+        :return: A list of applicable methods or an empty list if no applicable methods are found
         """
+        feasible_methods = []
         for method in self.methods:
-            if method.get_preconditions() == preconditions:
-                print(f"Method found for preconditions: {preconditions}")
-                return method
-        print(f"Method not found for preconditions: {preconditions}")
-        return None
+            method_preconditions = method.get_preconditions()
+            if are_preconditions_satisfied(method_preconditions, world_state):
+                feasible_methods.append(method)
+
+        return feasible_methods
