@@ -20,29 +20,31 @@ def check_condition(
     if current_value is None or expected_value is None:
         raise ValueError("Cannot compare None values")
 
-    if operator == "=":
-        return current_value == expected_value
+    match operator:
+        case "=":
+            return current_value == expected_value
 
-    if operator == "!=":
-        return current_value != expected_value
+        case "!=":
+            return current_value != expected_value
 
-    if operator in {">", "<", ">=", "<="}:
-        if not is_number(current_value) or not is_number(expected_value):
-            raise ValueError(
-                f"Operator '{operator}' requires numeric values. "
-                f"Got {type(current_value).__name__} and {type(expected_value).__name__}."
-            )
+        case ">" | "<" | ">=" | "<=" as cmp_op:
+            if not is_number(current_value) or not is_number(expected_value):
+                raise ValueError(
+                    f"Operator '{cmp_op}' requires numeric values. "
+                    f"Got {type(current_value).__name__} and {type(expected_value).__name__}."
+                )
+            match cmp_op:
+                case ">":
+                    return current_value > expected_value
+                case "<":
+                    return current_value < expected_value
+                case ">=":
+                    return current_value >= expected_value
+                case _:
+                    return current_value <= expected_value  # "<="
 
-        if operator == ">":
-            return current_value > expected_value
-        if operator == "<":
-            return current_value < expected_value
-        if operator == ">=":
-            return current_value >= expected_value
-        if operator == "<=":
-            return current_value <= expected_value
-
-    raise ValueError(f"Invalid condition operator: {operator}")
+        case _:
+            raise ValueError(f"Invalid condition operator: {operator}")
 
 
 def apply_effect(
@@ -55,54 +57,50 @@ def apply_effect(
     :param value: The value to apply the effect with
     :return: The updated current value after applying the effect
     """
-    if operator == "=":
-        return value
+    match operator:
+        case "=":
+            return value
 
-    if current_value is None:
-        raise ValueError(
-            f"Cannot apply operator '{operator}' to a missing world state value."
-        )
-
-    if operator == "not":
-        if not isinstance(current_value, bool):
+        case _ if current_value is None:
             raise ValueError(
-                f"Operator 'not' requires a bool value. "
-                f"Got {type(current_value).__name__}."
-            )
-        return not current_value
-
-    if operator in {"+", "-", "*", "/", "%", "**", "//"}:
-        if not is_number(current_value) or not is_number(value):
-            raise ValueError(
-                f"Operator '{operator}' requires numeric values. "
-                f"Got {type(current_value).__name__} and {type(value).__name__}."
+                f"Cannot apply operator '{operator}' to a missing world state value."
             )
 
-        if operator == "+":
-            return current_value + value
+        case "not":
+            if not isinstance(current_value, bool):
+                raise ValueError(
+                    f"Operator 'not' requires a bool value. "
+                    f"Got {type(current_value).__name__}."
+                )
+            return not current_value
 
-        if operator == "-":
-            return current_value - value
+        case "+" | "-" | "*" | "/" | "%" | "**" | "//" as arith_op:
+            if not is_number(current_value) or not is_number(value):
+                raise ValueError(
+                    f"Operator '{arith_op}' requires numeric values. "
+                    f"Got {type(current_value).__name__} and {type(value).__name__}."
+                )
+            match arith_op:
+                case "+":
+                    return current_value + value
+                case "-":
+                    return current_value - value
+                case "*":
+                    return current_value * value
+                case "/":
+                    if value == 0:
+                        raise ValueError("Cannot divide by zero")
+                    return current_value / value
+                case "%":
+                    if value == 0:
+                        raise ValueError("Cannot modulo by zero")
+                    return current_value % value
+                case "**":
+                    return current_value**value
+                case _:  # "//"
+                    if value == 0:
+                        raise ValueError("Cannot floor-divide by zero")
+                    return current_value // value
 
-        if operator == "*":
-            return current_value * value
-
-        if operator == "/":
-            if value == 0:
-                raise ValueError("Cannot divide by zero")
-            return current_value / value
-
-        if operator == "%":
-            if value == 0:
-                raise ValueError("Cannot modulo by zero")
-            return current_value % value
-
-        if operator == "**":
-            return current_value**value
-
-        if operator == "//":
-            if value == 0:
-                raise ValueError("Cannot floor-divide by zero")
-            return current_value // value
-
-    raise ValueError(f"Invalid effect operator: {operator}")
+        case _:
+            raise ValueError(f"Invalid effect operator: {operator}")
