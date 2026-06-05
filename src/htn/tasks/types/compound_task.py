@@ -14,11 +14,13 @@ class CompoundTask(Task):
     # Constructor
     def __init__(
         self,
+        name: str,
         methods: list[Method],
     ):
         """
         Initialize a compound task.
         """
+        super().__init__(name)
         self.methods = methods
 
     # Getters

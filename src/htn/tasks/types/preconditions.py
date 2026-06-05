@@ -1,9 +1,10 @@
-from typing import TypeAlias
+from typing import Literal, TypeAlias
 
 from htn.utils import WorldValue, check_condition
 from htn.world.state import WorldState
 
-Preconditions: TypeAlias = dict[str, tuple[str, WorldValue]]
+ConditionOperator: TypeAlias = Literal["=", "!=", ">", "<", ">=", "<="]
+Preconditions: TypeAlias = dict[str, tuple[ConditionOperator, WorldValue]]
 
 
 def are_preconditions_satisfied(

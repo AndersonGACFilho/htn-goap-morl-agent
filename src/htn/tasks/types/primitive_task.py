@@ -1,12 +1,9 @@
-from typing import TypeAlias
-
 from htn.actions.action import Action
+from htn.tasks.types.effects import Effects
 from htn.tasks.types.preconditions import Preconditions, are_preconditions_satisfied
 from htn.tasks.types.task import Task
-from htn.utils import WorldValue, apply_effect
+from htn.utils import apply_effect
 from htn.world.state import WorldState
-
-Effects: TypeAlias = dict[str, tuple[str, WorldValue]]
 
 
 class PrimitiveTask(Task):
@@ -21,16 +18,19 @@ class PrimitiveTask(Task):
     # Constructor
     def __init__(
         self,
+        name: str,
         action: Action,
         preconditions: Preconditions | None = None,
         effects: Effects | None = None,
     ):
         """
         Initialize the new instance of the Task class.
+        :param name: The name of the task
         :param action: The action that can be performed by the task
         :param preconditions: The preconditions of the task
         :param effects: The effects of the task
         """
+        super().__init__(name)
         self.action = action
         self.preconditions = preconditions or {}
         self.effects = effects or {}
