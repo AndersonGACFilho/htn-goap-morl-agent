@@ -4,6 +4,12 @@ WorldValue: TypeAlias = bool | int | float | str
 
 
 def is_number(value: WorldValue) -> TypeGuard[int | float]:
+    """
+    Check whether a world value is numeric.
+
+    :param value: The value to check
+    :return: True if the value is an int or float
+    """
     return type(value) in (int, float)
 
 

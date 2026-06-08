@@ -698,7 +698,7 @@ When `Planner.update_world_state(world_state)` is called, the planner:
 ```python
 def update_world_state(self, world_state: WorldState) -> None:
     self.world_state_copy = world_state.copy()
-    self.current_plan = []
+    self._current_plan = []
 ```
 
 ---

@@ -1,6 +1,6 @@
 # Hierarchical Task Network - HTN
 
-> Hierarchical Task Network planning is an AI planning technique where abstract goals are broken down into structured 
+> Hierarchical Task Network planning is an AI planning technique where abstract goals are broken down into structured
 > tasks and eventually into concrete actions that an agent can execute.
 
 ## Concepts

@@ -1,8 +1,8 @@
 # Behavior Tree - BT
 
-> A Behavior Tree is an AI decision-making structure used to control the behavior of agents through a hierarchy of 
+> A Behavior Tree is an AI decision-making structure used to control the behavior of agents through a hierarchy of
 > nodes.
-> It is commonly used in games to organize NPC logic such as patrol, chase, attack, flee, search, investigate, and 
+> It is commonly used in games to organize NPC logic such as patrol, chase, attack, flee, search, investigate, and
 > interact.
 
 ## Overview

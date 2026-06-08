@@ -1,6 +1,6 @@
 # Planning Methods Comparison
 
-> This page compares two AI planning approaches commonly used in game AI: Goal Oriented Action Planning (GOAP) and 
+> This page compares two AI planning approaches commonly used in game AI: Goal Oriented Action Planning (GOAP) and
 > Hierarchical Task Network (HTN).
 
 ## Overview
@@ -42,7 +42,7 @@ An agent has:
 * action effects;
 * action costs.
 
-The planner searches for a valid sequence of actions that transforms the current world state into the desired goal 
+The planner searches for a valid sequence of actions that transforms the current world state into the desired goal
 state.
 
 Example:

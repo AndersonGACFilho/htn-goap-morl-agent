@@ -83,7 +83,7 @@ isSafe = true
 areaPatrolled = true
 ```
 
-A goal does not describe how to achieve something.  
+A goal does not describe how to achieve something.
 It only describes the desired result.
 
 ---
