@@ -1,38 +1,199 @@
-from typing import Callable, List
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from agent.agent_base import AgentBase
 
-from htn.delegates import MulticastDelegate
+from htn.actions.action_status import ActionStatus
 from htn.planner.planner import Planner
+from htn.tasks.types.primitive_task import PrimitiveTask
 from htn.tasks.types.task import Task
 from htn.world.state import WorldState
+
+if TYPE_CHECKING:
+    from htn.world.world import World
+
+
+@dataclass(frozen=True, slots=True)
+class AgentTickResult:
+    """
+    Result produced by one agent execution tick.
+
+    Attributes:
+        task_name: Name of the task executed in this tick, if any.
+        status: Status returned by the executed action.
+        replanned: Whether the agent built a new plan before executing.
+        planned_tasks: Names of the tasks produced by the new plan.
+        remaining_plan: Names of the tasks still pending after this tick.
+        message: Optional execution message.
+    """
+
+    task_name: str | None
+    status: ActionStatus | None
+    replanned: bool
+    planned_tasks: list[str]
+    remaining_plan: list[str]
+    message: str | None = None
 
 
 class Agent(AgentBase):
     """
-    Agent that can plan and execute high-level tasks.
+    Agent that owns, validates, replans, and executes an HTN plan.
+
+    The planner only builds plans.
+    The agent is responsible for executing the current primitive task.
     """
 
     planner: Planner
     world_state: WorldState
-    plan: List[Task]
-    on_world_state_change: MulticastDelegate[Callable[[WorldState], None]]
+    plan: list[Task]
 
-    def __init__(self, planner: Planner, world_state: WorldState):
+    def __init__(self, planner: Planner, world_state: WorldState) -> None:
         """
-        The constructor for the Agent class.
+        Initialize the agent.
 
-        Initializes the agent with a planner, by:
-        - Setting the planner property.
-        - Setting the world state property to the world state of the planner.
-        - Setting the plan property to an empty list
-        - Setting the on_world_state_change property to a MulticastDelegate.
-
-        :param planner: The planner to use for planning.
+        :param planner: Planner used to build symbolic plans.
+        :param world_state: Initial symbolic world state observed by the agent.
         """
         self.planner = planner
-        self.world_state = world_state
+        self.world_state = world_state.copy()
         self.plan = []
-        self.on_world_state_change = MulticastDelegate()
+        self._world_state_changed = False
 
-        self.on_world_state_change.add_handler(planner.update_world_state)
+    def tick(self, world: World) -> AgentTickResult:
+        """
+        Execute one agent tick.
+
+        The agent:
+        1. replans if there is no plan or the current plan became invalid;
+        2. executes the current primitive task;
+        3. keeps running tasks in the plan;
+        4. removes successful tasks from the plan;
+        5. clears the plan on failure.
+
+        :param world: Runtime world where actions are executed.
+        :return: Execution result for this tick.
+        """
+        replanned = False
+        planned_tasks: list[str] = []
+
+        if self._should_replan():
+            self.plan = self.planner.build_plan()
+            self._world_state_changed = False
+            replanned = True
+            planned_tasks = self.get_plan_names()
+
+            if not self.plan:
+                return AgentTickResult(
+                    task_name=None,
+                    status=None,
+                    replanned=True,
+                    planned_tasks=[],
+                    remaining_plan=[],
+                    message="HTN: No valid plan.",
+                )
+
+        current_task = self.plan[0]
+
+        if not isinstance(current_task, PrimitiveTask):
+            self.plan.pop(0)
+
+            return AgentTickResult(
+                task_name=current_task.name,
+                status=None,
+                replanned=replanned,
+                planned_tasks=planned_tasks,
+                remaining_plan=self.get_plan_names(),
+                message=f"Skipped non-primitive task: {current_task.name}",
+            )
+
+        status = current_task.action.execute(world)
+
+        if status == ActionStatus.SUCCESS:
+            self.plan.pop(0)
+
+        elif status == ActionStatus.FAILURE:
+            self.plan = []
+
+        elif status == ActionStatus.RUNNING:
+            pass
+
+        else:
+            raise ValueError(f"Unknown action status: {status}")
+
+        return AgentTickResult(
+            task_name=current_task.name,
+            status=status,
+            replanned=replanned,
+            planned_tasks=planned_tasks,
+            remaining_plan=self.get_plan_names(),
+        )
+
+    def handle_world_state_change(self, world_state: WorldState) -> None:
+        """
+        Handle a sensor/world-state update.
+
+        The agent receives the updated symbolic state and forwards it to the
+        planner. The plan is not immediately discarded; it is validated on the
+        next tick, allowing still-valid plans to continue.
+
+        :param world_state: Updated symbolic world state.
+        :return: None
+        """
+        self.world_state = world_state.copy()
+        self.planner.update_world_state(world_state)
+        self._world_state_changed = True
+
+    def get_plan_names(self) -> list[str]:
+        """
+        Return the names of the current remaining plan tasks.
+
+        :return: List of task names.
+        """
+        return [task.name for task in self.plan]
+
+    def _should_replan(self) -> bool:
+        """
+        Decide whether the agent should request a new plan.
+
+        :return: True when the agent has no plan or the current plan became
+            invalid after a world-state change.
+        """
+        if not self.plan:
+            return True
+
+        if not self._world_state_changed:
+            return False
+
+        if self._is_plan_still_valid():
+            self._world_state_changed = False
+            return False
+
+        return True
+
+    def _is_plan_still_valid(self) -> bool:
+        """
+        Validate the remaining plan against a simulated world-state copy.
+
+        This allows future tasks to depend on effects produced by previous
+        tasks in the same plan.
+
+        :return: True if the remaining plan is still executable.
+        """
+        simulated_state = self.world_state.copy()
+
+        try:
+            for task in self.plan:
+                if not isinstance(task, PrimitiveTask):
+                    continue
+
+                if not task.check_preconditions(simulated_state):
+                    return False
+
+                task.apply_effects(simulated_state)
+
+        except ValueError:
+            return False
+
+        return True
