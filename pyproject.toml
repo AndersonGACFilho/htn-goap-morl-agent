@@ -29,6 +29,7 @@ dependencies = [
     "ruff",
     "mypy",
     "pre-commit",
+    "rich>=15.0.0",
 ]
 
 [tool.ruff]

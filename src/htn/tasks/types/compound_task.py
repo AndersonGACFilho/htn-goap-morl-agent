@@ -19,6 +19,9 @@ class CompoundTask(Task):
     ):
         """
         Initialize a compound task.
+
+        :param name: The name of the compound task
+        :param methods: The methods that can decompose the compound task
         """
         super().__init__(name)
         self.methods = methods

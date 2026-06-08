@@ -11,7 +11,7 @@ class Planner:
     """
 
     domain: Domain
-    current_plan: list[Task]
+    _current_plan: list[Task]
     world_state_copy: WorldState
 
     def __init__(self, domain: Domain, world_state: WorldState):
@@ -22,7 +22,7 @@ class Planner:
         :return: None
         """
         self.domain = domain
-        self.current_plan = []
+        self._current_plan = []
         self.world_state_copy = world_state.copy()
 
     def build_plan(self) -> list[Task]:
@@ -30,23 +30,16 @@ class Planner:
         Plans a sequence of tasks based on the given domain and world state.
         :return: A list of tasks to be executed.
         """
-        self.current_plan = []
-
-        if not self.domain:
-            raise ValueError("Domain is not set.")
-        if not self.world_state_copy:
-            raise ValueError("World State is not set.")
-
+        current_plan: list[Task] = []
         working_state = self.world_state_copy.copy()
 
         for domain_task in self.domain.tasks:
             result = self.recursive_planning([], working_state, domain_task)
             if result:
-                tasks_result, world_state_result = result
-                self.current_plan.extend(tasks_result)
-                working_state = world_state_result
+                tasks_result, working_state = result
+                current_plan.extend(tasks_result)
 
-        return self.current_plan
+        return current_plan
 
     def recursive_planning(
         self,
@@ -111,11 +104,11 @@ class Planner:
         :return: None
         """
         self.world_state_copy = world_state.copy()
-        self.current_plan = []
+        self._current_plan = []
 
     def __repr__(self) -> str:
         """
         Returns a string representation of the planner.
         :return: A string representation of the planner.
         """
-        return f"Planner(domain={self.domain}, plan={self.current_plan}, world_state_copy={self.world_state_copy})"
+        return f"Planner(domain={self.domain}, plan={self._current_plan}, world_state_copy={self.world_state_copy})"
