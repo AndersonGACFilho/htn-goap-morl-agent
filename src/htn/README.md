@@ -1,8 +1,6 @@
 # HTN Module
 
-Standalone implementation of a basic **Hierarchical Task Network** planner.
-
-This module provides the core structures required to define hierarchical tasks, decompose compound tasks into primitive tasks, validate preconditions, simulate effects over a copied world state, and update the planner when the perceived world state changes.
+Standalone implementation of a **Hierarchical Task Network** planner with a sensor-driven runtime, multi-tick action execution, and a working GridWorld example.
 
 ---
 
@@ -11,18 +9,22 @@ This module provides the core structures required to define hierarchical tasks, 
 The `htn` module currently implements:
 
 - world state representation;
-- condition checking;
-- effect application;
-- primitive tasks;
-- compound tasks;
+- condition checking and effect application;
+- primitive and compound tasks;
 - methods for task decomposition;
 - domain task container;
-- recursive HTN planner;
-- method-level backtracking;
+- recursive HTN planner with method-level backtracking;
 - simulated world state during planning;
-- abstract action interface;
-- basic agent structure;
-- multicast delegate for world state change notifications.
+- abstract action interface with `ActionStatus` (`RUNNING`, `SUCCESS`, `FAILURE`);
+- multi-tick action execution;
+- agent tick loop with lazy replanning;
+- forward plan validation before replanning;
+- generic `Sensor` and `SensorSystem` abstractions;
+- generic `Pathfinder[NodeT, ContextT]` abstraction;
+- abstract `World` base class;
+- `GymWorld` abstract base for Gymnasium-backed environments;
+- multicast delegate for event-driven state notifications;
+- GridWorld example with BFS pathfinding and Rich terminal renderer.
 
 ---
 
@@ -30,31 +32,47 @@ The `htn` module currently implements:
 
 ```text
 src/htn/
-├── actions/
-│   └── action.py
-├── agent/
-│   └── agent.py
-├── delegates/
-│   └── multicast_delegate.py
-├── planner/
-│   └── planner.py
-├── tasks/
-│   ├── domains/
-│   │   └── domain.py
-│   │
-│   └── types/
-│       ├── compound_task.py
-│       ├── effects.py
-│       ├── method.py
-│       ├── preconditions.py
-│       ├── primitive_task.py
-│       └── task.py
-├── world/
-│   ├── state.py
-│   └── world.py
-│
-└── utils.py
-````
+|-- actions/
+|   |-- action.py
+|   `-- action_status.py
+|-- agent/
+|   `-- agent.py
+|-- delegates/
+|   `-- multicast_delegate.py
+|-- pathfinding/
+|   `-- pathfinder.py
+|-- planner/
+|   `-- planner.py
+|-- sensors/
+|   |-- sensor.py
+|   `-- sensor_system.py
+|-- tasks/
+|   |-- domains/
+|   |   `-- domain.py
+|   `-- types/
+|       |-- compound_task.py
+|       |-- effects.py
+|       |-- method.py
+|       |-- preconditions.py
+|       |-- primitive_task.py
+|       `-- task.py
+|-- world/
+|   |-- gym/
+|   |   `-- gym_world.py
+|   |-- state.py
+|   `-- world.py
+|-- _examples/
+|   `-- grid_world/
+|       |-- actions.py
+|       |-- domain.py
+|       |-- env.py
+|       |-- main.py
+|       |-- movement.py
+|       |-- pathfinder.py
+|       |-- renderer.py
+|       `-- sensors.py
+`-- utils.py
+```
 
 ---
 
@@ -62,7 +80,7 @@ src/htn/
 
 ## WorldState
 
-`WorldState` stores the current state of the world as key-value pairs.
+`WorldState` stores the current symbolic state of the world as named key-value pairs.
 
 ```python
 world_state.set_state("has_key", True)
@@ -70,38 +88,32 @@ world_state.set_state("door_open", False)
 world_state.set_state("energy", 10)
 ```
 
-Internally, the state is stored as:
+Internally the state is stored as:
 
 ```python
-dict[str, WorldValue]
+dict[str, WorldValue]  # WorldValue = bool | int | float | str
 ```
 
-Where `WorldValue` currently supports:
+Provided methods:
 
 ```python
-bool | int | float | str
+get_state(key) -> WorldValue | None
+set_state(key, value) -> None
+copy() -> WorldState
 ```
 
-`WorldState` provides:
-
-* `get_state(key)`
-* `set_state(key, value)`
-* `copy()`
-
-The planner uses `copy()` to simulate planning without mutating the real world state.
+The planner uses `copy()` to simulate planning without mutating the live world state.
 
 ---
 
 ## Task
 
-`Task` is the abstract base class for HTN tasks.
-
-There are currently two concrete task types:
+`Task` is the abstract base class for all HTN tasks.
 
 ```text
 Task
-├── PrimitiveTask
-└── CompoundTask
+|-- PrimitiveTask
+`-- CompoundTask
 ```
 
 Each task has a `name`.
@@ -110,18 +122,12 @@ Each task has a `name`.
 
 ## PrimitiveTask
 
-A `PrimitiveTask` represents an executable task.
-
-It contains:
-
-* an `Action`;
-* `Preconditions`;
-* `Effects`.
+A `PrimitiveTask` is an executable leaf task containing an `Action`, optional `Preconditions`, and optional `Effects`.
 
 ```python
 PrimitiveTask(
     name="open_door",
-    action=open_door_action,
+    action=OpenDoorAction(),
     preconditions={
         "has_key": ("=", True),
         "door_open": ("=", False),
@@ -132,46 +138,37 @@ PrimitiveTask(
 )
 ```
 
-A primitive task can:
+If `preconditions` or `effects` are omitted, they default to an empty dictionary.
 
-* check if its preconditions are satisfied;
-* apply its effects to a given world state;
-* expose its executable action.
-
-Implemented methods:
+Provided methods:
 
 ```python
-get_action()
-get_preconditions()
-get_effects()
-check_preconditions(world_state)
-apply_effects(world_state)
+get_action() -> Action
+get_preconditions() -> Preconditions
+get_effects() -> Effects
+check_preconditions(world_state) -> bool
+apply_effects(world_state) -> None
 ```
 
 ---
 
 ## CompoundTask
 
-A `CompoundTask` represents a high-level task that must be decomposed.
-
-It contains a list of `Method` objects.
+A `CompoundTask` is a high-level task that must be decomposed into subtasks via one of its `Method` objects.
 
 ```python
 CompoundTask(
     name="enter_room",
-    methods=[
-        use_key_method,
-        force_door_method,
-    ],
+    methods=[use_key_method, force_door_method],
 )
 ```
 
-Implemented methods:
+Provided methods:
 
 ```python
-get_methods()
-get_method(index)
-get_feasible_methods(world_state)
+get_methods() -> list[Method]
+get_method(index) -> Method
+get_feasible_methods(world_state) -> list[Method]
 ```
 
 `get_feasible_methods()` returns only the methods whose preconditions are satisfied by the current world state.
@@ -180,56 +177,41 @@ get_feasible_methods(world_state)
 
 ## Method
 
-A `Method` represents one possible way to decompose a compound task.
-
-It contains:
-
-* preconditions;
-* an ordered list of subtasks.
+A `Method` represents one possible decomposition of a compound task.
 
 ```python
 Method(
-    preconditions={
-        "has_key": ("=", True),
-    },
-    tasks=[
-        unlock_door,
-        open_door,
-        enter_room,
-    ],
+    preconditions={"has_key": ("=", True)},
+    tasks=[go_to_door, open_door, enter_room],
 )
 ```
 
-Implemented methods:
+Methods can have an empty task list as a no-op branch:
 
 ```python
-get_task(index)
-get_tasks()
-get_preconditions()
+Method(
+    preconditions={"has_key": ("=", True)},
+    tasks=[],  # key is already held
+)
+```
+
+Provided methods:
+
+```python
+get_task(index) -> Task
+get_tasks() -> list[Task]
+get_preconditions() -> Preconditions
 ```
 
 ---
 
 ## Preconditions
 
-Preconditions are represented as:
-
 ```python
-dict[str, tuple[ConditionOperator, WorldValue]]
+Preconditions = dict[str, tuple[ConditionOperator, WorldValue]]
 ```
 
-Supported condition operators:
-
-```text
-=
-!=
->
-<
->=
-<=
-```
-
-Example:
+Supported operators: `=`, `!=`, `>`, `<`, `>=`, `<=`
 
 ```python
 preconditions = {
@@ -238,39 +220,17 @@ preconditions = {
 }
 ```
 
-The function responsible for validating preconditions is:
-
-```python
-are_preconditions_satisfied(preconditions, world_state)
-```
-
-If a required key does not exist in the world state, the precondition fails.
+If a required key is missing from the world state, the precondition fails. Numeric comparison operators raise `ValueError` when used with non-numeric values.
 
 ---
 
 ## Effects
 
-Effects are represented as:
-
 ```python
-dict[str, tuple[EffectOperator, WorldValue]]
+Effects = dict[str, tuple[EffectOperator, WorldValue]]
 ```
 
-Supported effect operators:
-
-```text
-=
-+
--
-*
-/
-%
-//
-**
-not
-```
-
-Example:
+Supported operators: `=`, `+`, `-`, `*`, `/`, `%`, `//`, `**`, `not`
 
 ```python
 effects = {
@@ -279,67 +239,138 @@ effects = {
 }
 ```
 
-Effects are applied through:
+During planning, effects are applied only to copied world states. The live state is not mutated by the planner.
+
+Non-assignment effects require the target key to already exist. Arithmetic effects require numeric values, and `not` requires a boolean value.
+
+---
+
+## ActionStatus
+
+Actions return a status to support multi-tick execution:
 
 ```python
-apply_effect(current_value, operator, value)
+class ActionStatus(Enum):
+    RUNNING = "running"  # action still in progress
+    SUCCESS = "success"  # action completed successfully
+    FAILURE = "failure"  # action failed
 ```
 
-Primitive tasks apply effects using:
+---
+
+## Action
+
+`Action` is an abstract base class. Concrete actions implement:
 
 ```python
-task.apply_effects(world_state)
+def execute(self, world: World) -> ActionStatus:
+    ...
 ```
 
-During planning, effects are applied only to a copied world state.
+The planner never executes actions. Actions are stored inside `PrimitiveTask` and executed by the `Agent` during the tick loop.
+
+---
+
+## World
+
+`World` is an abstract base class. It carries the shared runtime context that actions receive when executed.
+
+```python
+class World(ABC):
+    world_state: WorldState
+    agent: Agent
+```
+
+Concrete subclasses extend this with environment-specific state. `World` uses `TYPE_CHECKING` to import `Agent`, avoiding a runtime circular dependency.
+
+---
+
+## Sensor
+
+`Sensor[WorldT]` is a generic abstract base class. A sensor reads concrete runtime data from the world and writes symbolic facts into `WorldState`.
+
+```python
+class Sensor(ABC, Generic[WorldT]):
+    @abstractmethod
+    def sense(self, world: WorldT, world_state: WorldState) -> None: ...
+```
+
+Sensors only observe. They do not plan and do not execute actions.
+
+---
+
+## SensorSystem
+
+`SensorSystem[WorldT]` coordinates one or more sensors and fires a delegate after the symbolic state is refreshed.
+
+```python
+sensor_system = SensorSystem()
+sensor_system.add_sensor(MyEnvSensor())
+sensor_system.on_world_state_changed.add_handler(agent.handle_world_state_change)
+
+# each frame:
+sensor_system.update(world, world_state)
+```
+
+`on_world_state_changed` is a `MulticastDelegate` that notifies all listeners after every sensor pass.
+
+---
+
+## Pathfinder
+
+`Pathfinder[NodeT, ContextT]` is a generic abstract base class for pathfinding algorithms.
+
+```python
+class Pathfinder(ABC, Generic[NodeT, ContextT]):
+    @abstractmethod
+    def find_path(self, start: NodeT, goal: NodeT, context: ContextT) -> list[NodeT]: ...
+```
+
+`NodeT` is the node type, such as `tuple[int, int]` for grids. `ContextT` carries algorithm-specific data, such as grid bounds, blocked tiles, graph adjacency, or navmesh data.
+
+---
+
+## GymWorld
+
+`GymWorld` extends `World` with a live `gymnasium.Env` reference, allowing actions to call `env.step()` directly.
+
+```python
+class GymWorld(World):
+    env: gym.Env
+    last_obs: object
+    last_reward: float
+    done: bool
+
+    @abstractmethod
+    def update_from_obs(self, obs: object) -> None: ...
+```
+
+`update_from_obs()` is abstract, so subclasses must implement the observation-to-`WorldState` mapping.
 
 ---
 
 # Planner
 
-The `Planner` is responsible for decomposing tasks into a plan.
-
-It receives:
-
-* a `Domain`;
-* an initial `WorldState`.
+The `Planner` decomposes domain tasks into an ordered list of executable tasks.
 
 ```python
 planner = Planner(domain, world_state)
+plan = planner.build_plan()  # -> list[Task]
 ```
 
-The planner keeps:
+The planner owns:
 
 ```python
 domain: Domain
-current_plan: list[Task]
-world_state_copy: WorldState
+_current_plan: list[Task]      # kept for representation/legacy state; build_plan uses a local plan
+world_state_copy: WorldState   # snapshot used during planning
 ```
 
----
-
-## Planning Entry Point
-
-```python
-build_plan() -> list[Task]
-```
-
-`build_plan()`:
-
-1. clears the current plan;
-2. validates that the domain exists;
-3. validates that the world state copy exists;
-4. creates a working copy of the world state;
-5. iterates over the tasks registered in the domain;
-6. recursively tries to plan each task;
-7. appends successful planned tasks to `current_plan`;
-8. returns the final plan.
+`build_plan()` returns a fresh local list each call. Runtime execution state is owned by the `Agent`.
 
 ---
 
 ## Recursive Planning
-
-The core algorithm is implemented in:
 
 ```python
 recursive_planning(
@@ -349,351 +380,22 @@ recursive_planning(
 ) -> tuple[list[Task], WorldState] | None
 ```
 
-The method handles two cases:
+**Primitive task:** checks preconditions, appends task, applies effects to a simulated copy, and returns the updated branch.
 
----
-
-## Primitive Task Planning
-
-For a `PrimitiveTask`, the planner:
-
-1. checks task preconditions;
-2. copies the current task list;
-3. copies the current simulated world state;
-4. appends the primitive task to the copied task list;
-5. applies task effects to the copied world state;
-6. returns the updated task list and simulated world state.
-
-```text
-PrimitiveTask
-    ↓
-Check preconditions
-    ↓
-Copy task list
-    ↓
-Copy world state
-    ↓
-Append task
-    ↓
-Apply simulated effects
-    ↓
-Return updated plan branch
-```
-
----
-
-## Compound Task Planning
-
-For a `CompoundTask`, the planner:
-
-1. gets feasible methods;
-2. tries each feasible method;
-3. copies the current task list;
-4. copies the current simulated world state;
-5. recursively plans each subtask in the selected method;
-6. abandons the method if one subtask fails;
-7. tries the next feasible method;
-8. returns the first successful decomposition.
+**Compound task:** gets feasible methods, tries each in order, recursively plans all subtasks, and returns on first success. It performs method-level backtracking if a subtask fails.
 
 ```text
 CompoundTask
-    ↓
-Get feasible methods
-    ↓
-Try method
-    ↓
-Plan each subtask recursively
-    ↓
-If subtask fails, try next method
-    ↓
-If method succeeds, return planned branch
+|-- Method A  -> fails midway -> discarded
+|-- Method B  -> all subtasks succeed -> returned
+`-- Method C  -> never tried
 ```
+
+If no method or primitive branch can be planned, the planner prints a diagnostic message and returns `None` for that branch.
 
 ---
 
-## Backtracking Behavior
-
-The planner currently performs method-level backtracking.
-
-If one method fails during recursive planning, the planner tries the next feasible method.
-
-```text
-CompoundTask
-├── Method A
-│   ├── Subtask A1
-│   └── Subtask A2
-├── Method B
-│   ├── Subtask B1
-│   └── Subtask B2
-└── Method C
-    ├── Subtask C1
-    └── Subtask C2
-```
-
-If `Method A` fails, the planner tries `Method B`.
-
-If `Method B` succeeds, its generated primitive tasks become part of the plan.
-
----
-
-# Planning Sequence
-
-```mermaid
-sequenceDiagram
-    participant Caller
-    participant Planner
-    participant Domain
-    participant Task
-    participant CompoundTask
-    participant Method
-    participant PrimitiveTask
-    participant WorldState
-
-    Caller->>Planner: build_plan()
-    Planner->>Planner: clear current_plan
-    Planner->>WorldState: copy()
-    Planner->>Domain: read tasks
-
-    loop For each domain task
-        Planner->>Planner: recursive_planning(task)
-
-        alt Task is PrimitiveTask
-            Planner->>PrimitiveTask: check_preconditions(world_state)
-            PrimitiveTask-->>Planner: true / false
-
-            alt Preconditions satisfied
-                Planner->>WorldState: copy()
-                Planner->>PrimitiveTask: apply_effects(copied_world_state)
-                Planner-->>Planner: append task to branch
-            else Preconditions failed
-                Planner-->>Planner: return None
-            end
-
-        else Task is CompoundTask
-            Planner->>CompoundTask: get_feasible_methods(world_state)
-            CompoundTask-->>Planner: feasible methods
-
-            loop For each feasible method
-                Planner->>Method: get_tasks()
-
-                loop For each subtask
-                    Planner->>Planner: recursive_planning(subtask)
-                end
-
-                alt Method succeeds
-                    Planner-->>Planner: return planned branch
-                else Method fails
-                    Planner-->>Planner: try next method
-                end
-            end
-        end
-    end
-
-    Planner-->>Caller: current_plan
-```
-
----
-
-# Class Diagram
-
-```mermaid
-classDiagram
-    class Task {
-        +str name
-        +__repr__() str
-    }
-
-    class PrimitiveTask {
-        +Preconditions preconditions
-        +Effects effects
-        +Action action
-        +get_action() Action
-        +get_preconditions() Preconditions
-        +get_effects() Effects
-        +apply_effects(world_state) None
-        +check_preconditions(world_state) bool
-    }
-
-    class CompoundTask {
-        +list~Method~ methods
-        +get_methods() list~Method~
-        +get_method(index) Method
-        +get_feasible_methods(world_state) list~Method~
-    }
-
-    class Method {
-        +Preconditions preconditions
-        +list~Task~ tasks
-        +get_task(index) Task
-        +get_tasks() list~Task~
-        +get_preconditions() Preconditions
-    }
-
-    class Domain {
-        +list~Task~ tasks
-    }
-
-    class Planner {
-        +Domain domain
-        +list~Task~ current_plan
-        +WorldState world_state_copy
-        +build_plan() list~Task~
-        +recursive_planning(task_list, world_state, task)
-        +update_world_state(world_state) None
-    }
-
-    class WorldState {
-        +dict state_space
-        +get_state(key)
-        +set_state(key, value) None
-        +copy() WorldState
-    }
-
-    class Action {
-        <<abstract>>
-        +execute(world) None
-    }
-
-    class World {
-        +WorldState world_state
-        +Agent agent
-    }
-
-    class Agent {
-        +Planner planner
-        +WorldState world_state
-        +list~Task~ plan
-        +MulticastDelegate on_world_state_change
-    }
-
-    class MulticastDelegate {
-        +add_handler(handler) None
-        +remove_handler(handler) None
-        +invoke_handlers() None
-        +clear() None
-    }
-
-    Task <|-- PrimitiveTask
-    Task <|-- CompoundTask
-
-    PrimitiveTask --> Action
-    PrimitiveTask --> WorldState
-
-    CompoundTask --> Method
-    Method --> Task
-
-    Domain --> Task
-    Planner --> Domain
-    Planner --> WorldState
-    Planner --> Task
-
-    World --> WorldState
-    World --> Agent
-
-    Agent --> Planner
-    Agent --> WorldState
-    Agent --> MulticastDelegate
-```
-
----
-
-# Agent
-
-The current `Agent` implementation stores:
-
-```python
-planner: Planner
-world_state: WorldState
-plan: list[Task]
-on_world_state_change: MulticastDelegate
-```
-
-During initialization, the agent registers the planner as a listener for world state changes:
-
-```python
-self.on_world_state_change.add_handler(planner.update_world_state)
-```
-
-This means the planner can receive an updated world state copy when the agent invokes the delegate.
-
-The agent execution loop is not implemented yet in this module.
-
----
-
-# MulticastDelegate
-
-`MulticastDelegate` allows multiple handlers to be registered and invoked.
-
-Implemented methods:
-
-```python
-add_handler(handler)
-remove_handler(handler)
-invoke_handlers(*args, **kwargs)
-clear()
-__contains__(event)
-__len__()
-```
-
-It is currently used by the agent to notify the planner when the world state changes.
-
----
-
-# Action
-
-`Action` is an abstract base class.
-
-It defines:
-
-```python
-execute(world: World) -> None
-```
-
-Concrete actions must implement this method.
-
-The planner does not execute actions.
-Actions are only stored inside primitive tasks, to be executed by the agent.
-
----
-
-# World
-
-`World` currently stores:
-
-```python
-world_state: WorldState
-agent: Agent
-```
-
-It acts as a simple container for the current world state and the agent.
-
----
-
-# Implemented Runtime Relationship
-
-The implemented relationship between agent, delegate and planner is:
-
-```mermaid
-sequenceDiagram
-    participant Agent
-    participant Delegate as on_world_state_change
-    participant Planner
-    participant WorldState
-
-    Agent->>Delegate: add_handler(planner.update_world_state)
-
-    Agent->>Delegate: invoke_handlers(world_state)
-    Delegate->>Planner: update_world_state(world_state)
-
-    Planner->>WorldState: copy()
-    Planner->>Planner: clear current_plan
-```
-
-When `Planner.update_world_state(world_state)` is called, the planner:
-
-1. copies the received world state;
-2. stores it as `world_state_copy`;
-3. it clears the current plan.
+## World State Update
 
 ```python
 def update_world_state(self, world_state: WorldState) -> None:
@@ -701,43 +403,270 @@ def update_world_state(self, world_state: WorldState) -> None:
     self._current_plan = []
 ```
 
+Called by the agent when the sensor system fires. This refreshes the planner's snapshot and clears the planner's internal `_current_plan` field. The active runtime plan is not stored in the planner, so it is not discarded here; the agent decides whether its own `plan` should continue or be rebuilt.
+
 ---
 
-# Important Design Detail
+# Agent
 
-The planner simulates effects over a copied world state.
+The `Agent` owns the current plan and drives the execution loop.
 
-It does not mutate the real world state during planning.
-
-```text
-Real WorldState
-      │
-      ▼
-Copied WorldState
-      │
-      ▼
-Planner applies simulated effects
-      │
-      ▼
-Plan generated
+```python
+agent = Agent(planner, world_state)
 ```
 
-This allows the planner to test whether a sequence of tasks is valid without executing actions in the real world.
+The agent owns:
+
+```python
+planner: Planner
+world_state: WorldState   # last known symbolic state
+plan: list[Task]          # current remaining plan
+_world_state_changed: bool
+```
+
+---
+
+## Tick Loop
+
+```python
+result: AgentTickResult = agent.tick(world)
+```
+
+Each tick the agent:
+
+1. checks whether to replan (`_should_replan()`);
+2. executes the current primitive task via `action.execute(world)`;
+3. on `SUCCESS`, removes the task from the plan;
+4. on `FAILURE`, clears the entire plan;
+5. on `RUNNING`, keeps the task at the front for the next tick.
+
+If a non-primitive task is found in the runtime plan, the agent skips it and returns an explanatory `AgentTickResult`. In normal operation `Planner.build_plan()` returns primitive tasks only.
+
+---
+
+## AgentTickResult
+
+```python
+@dataclass(frozen=True, slots=True)
+class AgentTickResult:
+    task_name: str | None
+    status: ActionStatus | None
+    replanned: bool
+    planned_tasks: list[str]   # names from the new plan, if replanned
+    remaining_plan: list[str]  # names still pending after this tick
+    message: str | None = None
+```
+
+---
+
+## Replanning Logic
+
+The agent replans lazily: only when there is no plan, or when the world state has changed and the current plan is no longer valid.
+
+```python
+def _should_replan(self) -> bool:
+    if not self.plan:
+        return True
+    if not self._world_state_changed:
+        return False
+    if self._is_plan_still_valid():
+        self._world_state_changed = False
+        return False
+    return True
+```
+
+`_is_plan_still_valid()` simulates the remaining plan forward against the current world state, applying each primitive task's effects in order, before deciding to discard it. This allows future tasks in the plan to depend on effects produced by earlier tasks.
+
+---
+
+## World State Change Handler
+
+```python
+def handle_world_state_change(self, world_state: WorldState) -> None:
+    self.world_state = world_state.copy()
+    self.planner.update_world_state(world_state)
+    self._world_state_changed = True
+```
+
+Registered as a listener on `SensorSystem.on_world_state_changed`. The agent plan is not discarded immediately; it is validated on the next tick.
+
+---
+
+# Runtime Flow
+
+```mermaid
+sequenceDiagram
+    participant MainLoop as Main Loop
+    participant SensorSystem
+    participant Agent
+    participant Planner
+    participant Action
+    participant Env as World / Env
+
+    MainLoop->>SensorSystem: update(world, world_state)
+    SensorSystem->>Env: read concrete state
+    SensorSystem->>Agent: handle_world_state_change(world_state)
+    Agent->>Planner: update_world_state(world_state)
+
+    MainLoop->>Agent: tick(world)
+    Agent->>Agent: _should_replan()?
+
+    alt needs replan
+        Agent->>Planner: build_plan()
+        Planner-->>Agent: list[Task]
+    end
+
+    Agent->>Action: execute(world)
+    Action->>Env: env.step(action_id)
+    Action-->>Agent: ActionStatus
+
+    alt SUCCESS
+        Agent->>Agent: pop task from plan
+    else FAILURE
+        Agent->>Agent: clear plan
+    else RUNNING
+        Agent->>Agent: keep task
+    end
+
+    Agent-->>MainLoop: AgentTickResult
+```
+
+---
+
+# GridWorld Example
+
+The `_examples/grid_world` package is a complete working example of the HTN runtime.
+
+## Scenario
+
+The domain models an agent that can navigate a configurable grid, collect a key, open a door, and reach a goal tile.
+
+The reusable `GridWorldConfig` default is a deterministic 3x3 layout:
+
+```text
+A . K
+. X .
+G . D
+
+A = Agent      K = Key      D = Door (locked)
+O = Door open  G = Goal     X = Obstacle
+```
+
+The runnable example in `main.py` overrides this with an 8x6 randomized layout, fixed obstacles at `(2, 2)` and `(3, 2)`, five random obstacles, and `initial_door_open=True`. With that specific configuration, the first selected method usually goes directly to `go_to_goal`; setting `initial_door_open=False` exercises the full key -> door -> goal chain.
+
+## Components
+
+**`GridWorldEnv`** - custom `gym.Env` with 6 actions (`UP`, `RIGHT`, `DOWN`, `LEFT`, `PICKUP_KEY`, `OPEN_DOOR`). Layout is resolved at `reset()` with optional randomization.
+
+**`GridWorld`** - `World` adapter. `done` is a property delegating to `env.done`.
+
+**`GridContext` + `GridPathfinder`** - `GridContext(frozen=True, blocked=frozenset)` carries grid bounds and blocked positions. `GridPathfinder` implements `Pathfinder[Position, GridContext]` with BFS.
+
+**`NavigateToPositionAction`** - reactive multi-tick navigation. Each tick it recomputes a BFS path and moves one step, returning `RUNNING` until the target is reached, `SUCCESS` when already at or after reaching the target, and `FAILURE` when no next step is available.
+
+**`PickupKeyAction`** - calls `env.step(GridWorldEnv.ACTION_PICKUP_KEY)` and succeeds when `env.has_key` becomes true.
+
+**`OpenDoorAction`** - calls `env.step(GridWorldEnv.ACTION_OPEN_DOOR)` and succeeds when `env.door_open` becomes true.
+
+**`GridWorldSensor`** - maps concrete `GridWorldEnv` state to symbolic `WorldState` facts (`agent_x`, `agent_y`, `key_x`, `key_y`, `door_x`, `door_y`, `goal_x`, `goal_y`, `has_key`, `door_open`, `done`, `at_key`, `at_door`, `at_goal`).
+
+**`RichGridWorldRenderer`** - terminal renderer using Rich. Accepts any `GridWorldLike` Protocol, decoupled from the concrete env class.
+
+## Domain
+
+```text
+escape_grid (CompoundTask)
+|-- Method [done=False, door_open=True]
+|   `-- go_to_goal
+`-- Method [done=False, door_open=False]
+    |-- ensure_has_key (CompoundTask)
+    |   |-- Method [has_key=True]  -> no-op
+    |   `-- Method [has_key=False] -> go_to_key -> pickup_key
+    |-- ensure_door_open (CompoundTask)
+    |   |-- Method [door_open=True] -> no-op
+    |   `-- Method [door_open=False, has_key=True] -> go_to_door -> open_door
+    `-- go_to_goal
+```
+
+## Composition Root
+
+```python
+# main.py
+config = GridWorldConfig(
+    width=8,
+    height=6,
+    start_position=None,
+    key_position=None,
+    door_position=None,
+    goal_position=None,
+    fixed_obstacles=frozenset({(2, 2), (3, 2)}),
+    random_obstacle_count=5,
+    initial_has_key=False,
+    initial_door_open=True,
+)
+
+env = GridWorldEnv(config)
+env.reset(seed=42)
+
+world_state = WorldState()
+domain = build_grid_world_domain(env)
+planner = Planner(domain, world_state)
+agent = Agent(planner, world_state)
+world = GridWorld(env, world_state, agent)
+
+sensor_system = SensorSystem()
+sensor_system.add_sensor(GridWorldSensor())
+sensor_system.on_world_state_changed.add_handler(agent.handle_world_state_change)
+
+sensor_system.update(world, world_state)  # seed initial symbolic state
+
+while not world.done and tick < max_ticks:
+    result = agent.tick(world)
+    sensor_system.update(world, world_state)
+```
+
+---
+
+# Important Design Details
+
+## Planner never mutates live state
+
+The planner operates on a copy of the world state. Effects are simulated forward during planning without touching the real environment.
+
+```mermaid
+flowchart TD
+    live["Live WorldState"]
+    simulated["Simulated WorldState"]
+    effects["Apply task effects"]
+    validate["Validate branch"]
+    plan["Return plan"]
+
+    live -->|copy| simulated
+    simulated --> effects
+    effects --> validate
+    validate --> plan
+```
+
+## Sensor is the runtime writer of WorldState
+
+Actions interact with the concrete environment (`env.step()`). The sensor reads the environment afterwards and writes symbolic facts. The planner reads those facts. This keeps the symbolic layer clean.
+
+```text
+Action -> env.step() -> Sensor.sense() -> WorldState -> Planner
+```
+
+`WorldState` itself is a general mutable container, so code can seed or test it directly. In the normal runtime flow, sensor updates are the source of truth.
+
+## Agent validates before discarding plans
+
+When the world state changes, the agent does not immediately replan. It simulates the remaining plan forward first. If preconditions still hold after applying cumulative effects, the plan continues unchanged.
 
 ---
 
 # Current Limitations
 
-The current `htn` module does not yet implement:
+The `htn` module does not yet implement:
 
-* concrete action classes;
-* concrete example domain;
-* agent execution loop;
-* task execution status;
-* running/success/failure action states;
-* sensor classes;
-* resource reservation;
-* multi-agent concurrency control;
-* test suite.
-
-These features are outside the currently implemented code.
+- resource reservation;
+- multi-agent concurrency control;
+- automated test suite.
