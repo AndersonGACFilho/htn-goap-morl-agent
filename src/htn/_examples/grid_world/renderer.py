@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import os
 from typing import Protocol
 
+from env import GridWorldEnv
 from rich.align import Align
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
+from themes import GridWorldTheme
 
 Position = tuple[int, int]
 
@@ -29,27 +32,56 @@ class GridWorldLike(Protocol):
 
 
 class RichGridWorldRenderer:
-    """Centered terminal renderer for GridWorld using Rich."""
+    """Centered terminal renderer for GridWorld using Rich.
 
-    def __init__(self) -> None:
-        """Initialize the renderer."""
-        self.console = Console()
+    Every tick is rendered as a single Panel with fixed-height,
+    fixed-width reserved lines for optional content (banner, plan
+    announcement, step message, result message). This guarantees
+    every exported SVG frame has identical dimensions, so no
+    black-border padding is needed when assembling the GIF.
+    """
+
+    PANEL_WIDTH = 40
+
+    def __init__(self, env: GridWorldEnv, theme: GridWorldTheme | None = None) -> None:
+        """
+        Initialize the renderer.
+
+        :param: env: the current env config
+        :param theme: color theme for SVG export. Defaults to GridWorldTheme(GridWorldTheme.ORANGE).
+        """
+        os.makedirs("images", exist_ok=True)
+        self.console = Console(record=True, width=self.PANEL_WIDTH + 10, height=40)
+        self.theme = theme or GridWorldTheme(GridWorldTheme.ORANGE)
         self.tick = 0
+        self.config = []
+        self.config.append(f"width={env.width}")
+        self.config.append(f"height={env.height}")
+        self.config.append(f"has_key={env.has_key}")
+        self.config.append(f"door_open={env.door_open}")
 
     def render(
         self,
         env: GridWorldLike,
         *,
+        banner: str | None = None,
         current_task: str | None = None,
         current_plan: list[str] | None = None,
+        plan_announcement: list[str] | None = None,
+        result_message: str | None = None,
+        result_style: str = "bold white",
         clear: bool = True,
     ) -> None:
         """
         Render the GridWorld environment centered in the terminal.
 
         :param env: GridWorld-like environment.
+        :param banner: Optional one-off banner line (e.g. "Initial world:").
         :param current_task: Optional currently executing task.
-        :param current_plan: Optional current symbolic plan.
+        :param current_plan: Optional current symbolic plan (for the status line).
+        :param plan_announcement: Optional newly produced HTN plan to announce.
+        :param result_message: Optional outcome message for this tick.
+        :param result_style: the result line color
         :param clear: Whether to clear the terminal before rendering.
         :return: None
         """
@@ -61,15 +93,56 @@ class RichGridWorldRenderer:
         grid = self._build_grid(env)
         status = self._build_status(env, current_task, current_plan)
 
-        panel = Panel.fit(
+        banner_line = self._reserved_line(banner or "", style="bold cyan")
+
+        plan_line = self._reserved_line(
+            f"New plan: {' -> '.join(plan_announcement)}" if plan_announcement else "",
+            style="bold yellow",
+        )
+
+        step_line = self._reserved_line(
+            f"Tick {self.tick}: executing {current_task}" if current_task else "",
+            style="bold green",
+        )
+
+        result_line = self._reserved_line(result_message or "", style=result_style)
+
+        body = Group(
+            banner_line,
+            plan_line,
+            step_line,
             Align.center(grid),
+            result_line,
+        )
+
+        subtitle_text = Text(status, style="grey42", overflow="ellipsis")
+        subtitle_text.no_wrap = True
+
+        panel = Panel(
+            body,
             title="[bold cyan]GridWorld[/bold cyan]",
-            subtitle=f"[dim]{status}[/dim]",
+            subtitle=subtitle_text,
             border_style="cyan",
             padding=(1, 3),
+            width=self.PANEL_WIDTH,
         )
 
         self.console.print(Align.center(panel))
+
+    @staticmethod
+    def _reserved_line(content: str, *, style: str) -> Text:
+        """
+        Build a single, non-wrapping line that always occupies exactly
+        one row of height, whether it has content or is blank.
+
+        :param content: Line text, or "" to reserve a blank line.
+        :param style: Rich style applied when content is present.
+        :return: A centered, non-wrapping Text renderable.
+        """
+        text = Text(content, style=style if content else "", justify="center")
+        text.no_wrap = True
+        text.overflow = "ellipsis"
+        return text
 
     def print_message(
         self,
@@ -79,7 +152,8 @@ class RichGridWorldRenderer:
         clear: bool = False,
     ) -> None:
         """
-        Print a centered message.
+        Print a standalone centered message (not part of an exported frame).
+        Useful for final summaries or progress logs outside the tick loop.
 
         :param message: Message to print.
         :param style: Rich style for the message.
@@ -99,7 +173,9 @@ class RichGridWorldRenderer:
         clear: bool = False,
     ) -> None:
         """
-        Print a centered plan line.
+        Print a standalone centered plan panel. Not used per-tick in the
+        main loop anymore (folded into render() instead), kept for
+        ad-hoc/debug use.
 
         :param plan: Current symbolic plan.
         :param clear: Whether to clear the terminal before printing.
@@ -124,7 +200,9 @@ class RichGridWorldRenderer:
         task_name: str,
     ) -> None:
         """
-        Print a centered execution step.
+        Print a standalone centered execution step. Not used per-tick in
+        the main loop anymore (folded into render() instead), kept for
+        ad-hoc/debug use.
 
         :param tick: Current execution tick.
         :param task_name: Task being executed.
@@ -180,7 +258,7 @@ class RichGridWorldRenderer:
         if position == env.goal_position:
             return Text(" G ", style="bold white on cyan")
 
-        return Text(" . ", style="dim")
+        return Text(" . ", style="grey62")
 
     def _build_status(
         self,
@@ -211,3 +289,19 @@ class RichGridWorldRenderer:
             status_parts.append(f"plan={' -> '.join(current_plan)}")
 
         return " | ".join(status_parts)
+
+    def export(self):
+        """
+        Exports the current tick into svg images
+
+        :return: the path to the generated image
+        """
+        title = f"{' '.join(self.config)} Tick {self.tick}"
+
+        self.console.save_svg(
+            f"images/{title}.svg",
+            title=title,
+            theme=self.theme.terminal_theme,
+        )
+
+        return f"images/{title}.svg"

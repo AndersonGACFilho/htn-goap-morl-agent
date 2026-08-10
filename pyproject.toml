@@ -30,6 +30,11 @@ dependencies = [
     "mypy",
     "pre-commit",
     "rich>=15.0.0",
+    "cairosvg>=2.9.0",
+    "svglib>=2.1.0",
+    "reportlab>=5.0.0",
+    "pillow>=12.3.0",
+    "resvg-py>=0.3.4",
 ]
 
 [tool.ruff]

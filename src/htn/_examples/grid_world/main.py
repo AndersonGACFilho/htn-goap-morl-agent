@@ -3,6 +3,7 @@ from __future__ import annotations
 from htn._examples.grid_world.actions import GridWorld
 from htn._examples.grid_world.domain import build_grid_world_domain
 from htn._examples.grid_world.env import GridWorldConfig, GridWorldEnv
+from htn._examples.grid_world.gif_generator import create_gif
 from htn._examples.grid_world.renderer import RichGridWorldRenderer
 from htn._examples.grid_world.sensors import GridWorldSensor
 from htn.actions.action_status import ActionStatus
@@ -10,8 +11,6 @@ from htn.agent.agent import Agent
 from htn.planner.planner import Planner
 from htn.sensors import SensorSystem
 from htn.world.state import WorldState
-
-renderer = RichGridWorldRenderer()
 
 
 def run() -> None:
@@ -25,8 +24,8 @@ def run() -> None:
     :return: None
     """
     config = GridWorldConfig(
-        width=8,
-        height=6,
+        width=10,
+        height=10,
         start_position=None,
         key_position=None,
         door_position=None,
@@ -37,9 +36,9 @@ def run() -> None:
                 (3, 2),
             }
         ),
-        random_obstacle_count=5,
+        random_obstacle_count=10,
         initial_has_key=False,
-        initial_door_open=True,
+        initial_door_open=False,
     )
 
     env = GridWorldEnv(config)
@@ -59,8 +58,15 @@ def run() -> None:
 
     sensor_system.update(world, world_state)
 
-    renderer.print_message("Initial world:", style="bold cyan")
-    renderer.render(env)
+    image_paths = []
+
+    renderer = RichGridWorldRenderer(env)
+
+    renderer.render(
+        env,
+        banner="Initial state:",
+    )
+    image_paths.append(renderer.export())
 
     max_ticks = 100
     tick = 0
@@ -70,41 +76,41 @@ def run() -> None:
 
         result = agent.tick(world)
 
+        plan_announcement = None
         if result.replanned:
             if result.planned_tasks:
-                renderer.print_plan(result.planned_tasks)
+                plan_announcement = result.planned_tasks
             else:
                 renderer.print_message("HTN: No valid plan.", style="bold red")
                 break
 
-        if result.task_name:
-            renderer.print_step(tick, result.task_name)
-
         sensor_system.update(world, world_state)
 
+        result_message = None
+        result_style = "bold black"
+
+        if result.status == ActionStatus.SUCCESS:
+            result_message = f"Task succeeded: {result.task_name}"
+            result_style = "bold green"
+        elif result.status == ActionStatus.RUNNING:
+            result_message = f"Task running: {result.task_name}"
+            result_style = "bold black"
+        elif result.status == ActionStatus.FAILURE:
+            result_message = f"Task failed: {result.task_name}"
+            result_style = "bold red"
+        elif result.message:
+            result_message = result.message
+            result_style = "bold black"
         renderer.render(
             env,
             current_task=result.task_name,
             current_plan=agent.get_plan_names(),
+            plan_announcement=plan_announcement,
+            result_message=result_message,
+            result_style=result_style,
         )
 
-        if result.status == ActionStatus.SUCCESS:
-            renderer.print_message(
-                f"Task succeeded: {result.task_name}",
-                style="bold green",
-            )
-
-        elif result.status == ActionStatus.RUNNING:
-            renderer.print_message(f"Task running: {result.task_name}")
-
-        elif result.status == ActionStatus.FAILURE:
-            renderer.print_message(
-                f"Task failed: {result.task_name}",
-                style="bold red",
-            )
-
-        elif result.message:
-            renderer.print_message(result.message, style="yellow")
+        image_paths.append(renderer.export())
 
     if world.done:
         renderer.print_message(
@@ -112,6 +118,8 @@ def run() -> None:
         )
     else:
         renderer.print_message("Episode failed!", style="bold red")
+
+    create_gif(image_paths, "gif", env, renderer)
 
 
 if __name__ == "__main__":
