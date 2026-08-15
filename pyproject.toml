@@ -35,6 +35,7 @@ dependencies = [
     "reportlab>=5.0.0",
     "pillow>=12.3.0",
     "resvg-py>=0.3.4",
+    "latexmk>=0.0.2",
 ]
 
 [tool.ruff]
@@ -53,3 +54,8 @@ line-length = 88
 python_version = "3.12"
 ignore_missing_imports = true
 strict = false
+
+[dependency-groups]
+docs = [
+    "mkdocs-material>=9.7.0",
+]

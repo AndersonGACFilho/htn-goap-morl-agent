@@ -1,0 +1,63 @@
+% =============================================================================
+\chapter{Riscos e Estratégias de Mitigação}
+% =============================================================================
+
+\section{Escopo excessivo}
+
+Integrar HTN, codificação de preferências, MORL, simulação rica e coordenação
+multiagente pode exceder o escopo do mestrado.
+A contribuição principal será restrita à seleção online de métodos HTN para um
+agente.
+Multiagente e gerador profundo de pesos permanecem opcionais; o codificador
+relacional será mantido como comparação estrutural, sem acrescentar um
+planejador GOAP.
+
+\section{Recompensas esparsas ou atrasadas}
+
+Uma escolha hierárquica pode afetar resultados somente após várias tarefas
+primitivas.
+Serão avaliadas recompensas intermediárias por objetivo, janelas de acumulação
+e estratégias de \textit{reward shaping}, sempre documentando o efeito sobre a
+política.
+
+\section{Aprendizado instável sob preferências variadas}
+
+A política pode não generalizar em todo o simplex de pesos.
+A mitigação inclui começar com poucos objetivos, normalizar escalas, usar
+amostragem controlada e comparar desempenho em vetores vistos e não vistos.
+
+\section{Oscilação comportamental}
+
+Mudanças frequentes de preferência podem causar trocas repetidas de método.
+Serão considerados períodos mínimos de compromisso, custo de troca, histerese
+ou limiares de decisão.
+Essas intervenções serão tratadas como parte explícita do desenho experimental.
+
+\section{Ambiguidade na atribuição de crédito}
+
+A duração variável das decomposições pode dificultar associar retornos à
+escolha do método.
+O protocolo definirá claramente início, término, interrupção e desconto da
+decisão hierárquica, com testes em cenários curtos antes do domínio completo.
+
+\section{Novidade científica insuficiente}
+
+Há trabalhos que combinam planejamento e aprendizado por reforço.
+A mitigação é realizar revisão estruturada e posicionar a contribuição de
+forma precisa na interseção entre filtragem HTN, preferências dinâmicas e
+MORL condicionado para seleção online de métodos.
+
+\section{Comparação experimental injusta}
+
+Diferenças de orçamento, ajuste ou dificuldade podem favorecer uma
+arquitetura.
+Serão usados cenários pareados, mesmas sementes de avaliação, orçamentos
+comparáveis, critérios explícitos de ajuste e relato de tamanhos de efeito.
+
+\section{Confusão entre codificador e política}
+
+Uma melhoria atribuída ao MORL pode decorrer apenas da forma de gerar
+$\mathbf{w}_t$.
+s comparações manterão o domínio HTN, a máscara de métodos, as recompensas,
+as sementes e, quando possível, a política fixos ao variar o codificador de
+preferências.

@@ -1,0 +1,53 @@
+% =============================================================================
+\chapter{Contribuições Esperadas}
+% =============================================================================
+
+\begin{itemize}
+\item uma arquitetura formal integrando HTN, codificação dinâmica de preferências e MORL;
+\item um método para empregar MORL especificamente na seleção de métodos de decomposição HTN;
+\item uma separação explícita entre restrições simbólicas obrigatórias e preferências comportamentais flexíveis;
+\item uma política condicionada capaz de variar o comportamento sem retreinamento para cada vetor de pesos;
+\item um modelo explicável de decisão hierárquica para NPCs adaptativos;
+\item uma comparação experimental entre seleção aprendida e heurísticas tradicionais de HTN;
+\item uma comparação controlada entre perfis, regras, grafos relacionais e,
+quando viável, codificadores profundos de preferências;
+\item evidências sobre benefícios, limitações e custo da integração neuro-simbólica proposta;
+\item um framework experimental reutilizável para pesquisas futuras em Game AI híbrida.
+\end{itemize}
+
+% =============================================================================
+\chapter{Considerações Finais}
+% =============================================================================
+
+A reformulação apresentada resolve a principal ambiguidade da hipótese
+anterior.
+O MORL não é responsável por execução motora nem pela escolha direta de ações
+primitivas.
+Ele atua no ponto em que um planejador HTN possui mais de um método semanticamente
+aplicável e precisa escolher qual decomposição melhor atende às prioridades correntes.
+
+A arquitetura pode ser resumida da seguinte forma: o HTN determina o que é
+válido; o codificador de preferências fornece $\mathbf{w}_t$ para expressar o
+compromisso corrente; e o MORL seleciona o método válido mais apropriado.
+O codificador é um módulo auxiliar e comparável: perfis e regras são
+baselines, um grafo relacional inspirado em GOAP é a alternativa estrutural
+e um modelo profundo é condicional.
+A execução das tarefas primitivas permanece sob responsabilidade de sistemas
+convencionais.
+
+O baseline HTN existente é compatível com esse direcionamento, mas deverá ser
+adaptado para expor o conjunto de métodos aplicáveis e aceitar um seletor
+externo.
+A avaliação deverá demonstrar não apenas ganho de desempenho, mas também
+generalização entre preferências, validade semântica, qualidade das explicações
+e custo compatível com decisões em tempo real.
+
+\vspace{3em}
+\noindent Porto Alegre, agosto de 2026.
+
+\vspace{4em}
+\begin{flushleft}
+\rule{7cm}{0.4pt}\\
+\textbf{Anderson G. A. C. Filho}\\
+Mestrando em Ciência da Computação --- PPGC/UFRGS
+\end{flushleft}

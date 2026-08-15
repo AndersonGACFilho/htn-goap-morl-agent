@@ -1,0 +1,68 @@
+\documentclass[ppgc,pep,english,brazilian]{infufrgs}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{ragged2e}
+
+\geometry{
+    a4paper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+\fontsize{12}{14.4}\selectfont
+\singlespacing
+\justifying
+
+\noindent
+\textbf{RESUMO:}
+Autonomous agents in simulated environments, such as digital games, often need to
+balance competing objectives, including task progress, threat avoidance, and
+resource management.
+Purely symbolic planning offers control and interpretability, whereas
+Multi-Objective Reinforcement Learning (MORL) can adapt the compromise among
+objectives.
+This work proposes a hybrid architecture in which a Hierarchical Task Network (HTN)
+defines tasks, methods, preconditions, and hard constraints.
+For each compound task, the HTN exposes only the applicable decomposition methods.
+%
+A preference-conditioned MORL policy then estimates their multi-objective value
+and selects the valid method with the best utility under a weight vector
+$\mathbf{w}_t$.
+Primitive tasks remain under conventional execution controllers; MORL is therefore
+not used as a motor-action layer.
+%
+The weight vector is supplied by a replaceable preference encoder based on goal,
+state, profile, and context.
+Fixed profiles and explicit rules are reproducible baselines.
+A relational graph inspired by GOAP goal--condition--effect relations is the main
+structural alternative, without adding GOAP search or a second planner to the
+architecture.
+A deep-learning encoder is a conditional extension, to be evaluated only if
+experimental evidence and the available budget justify its added complexity.
+%
+As an initial proof of concept, a standalone HTN baseline was implemented in a
+deterministic GridWorld with sensors, pathfinding, and replanning.
+The next experiments will establish vector rewards, hierarchical credit
+assignment, method-validity masks, and controlled comparisons among preference
+encoders under the same HTN and MORL interface.
+The expected result is an adaptive and explainable method-selection mechanism
+that preserves symbolic validity while making the trade-offs among objectives
+explicit.
+
+\medskip
+
+\noindent
+\textbf{PALAVRAS-CHAVE:}
+Symbolic planning; Multi-objective reinforcement learning; Autonomous agents.
+
+\end{document}

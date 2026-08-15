@@ -1,0 +1,142 @@
+% =============================================================================
+\chapter{Objetivos}
+% =============================================================================
+
+\section{Objetivo geral}
+
+Projetar e avaliar uma arquitetura híbrida de Game AI na qual uma política de
+aprendizado por reforço multiobjetivo condicionada por preferências seleciona,
+em tempo de execução, métodos de decomposição HTN entre as alternativas
+aplicáveis.
+
+\section{Objetivos específicos}
+
+\begin{enumerate}
+\item definir uma interface formal entre HTN, codificação de preferências e MORL;
+\item modelar restrições obrigatórias por pré-condições e regras de aplicabilidade HTN;
+\item representar preferências comportamentais flexíveis por vetores dinâmicos de pesos;
+\item desenvolver uma política MORL que selecione métodos HTN aplicáveis;
+\item implementar um ambiente controlado de jogo com recompensas vetoriais e eventos reproduzíveis;
+\item comparar a proposta com mecanismos tradicionais de seleção de métodos;
+\item medir desempenho, adaptação, diversidade, validade, interpretabilidade e custo computacional;
+\item avaliar generalização para vetores de preferência e condições ambientais não vistos;
+\item analisar a contribuição de cada componente por estudos de ablação;
+\item comparar perfis fixos, regras explícitas e codificadores relacionais para
+inferência de $\mathbf{w}_t$, mantendo fixa a política MORL quando aplicável.
+\end{enumerate}
+
+% =============================================================================
+\chapter{Metodologia}
+% =============================================================================
+
+\section{Revisão da literatura}
+
+Será conduzida uma revisão estruturada sobre HTN, GOAP como fonte de
+representações relacionais, MORL, políticas condicionadas por preferências,
+aprendizado por reforço hierárquico, arquiteturas neuro-simbólicas, NPCs
+adaptativos e Game AI explicável.
+A revisão deverá posicionar explicitamente a contribuição no nível de seleção
+de métodos HTN e identificar trabalhos que aprendem políticas de baixo nível,
+métodos de planejamento ou preferências.
+
+\section{Formalização}
+
+A formalização deverá separar quatro elementos: validade semântica,
+preferência comportamental, utilidade aprendida e execução de baixo nível.
+Serão definidos o estado, as tarefas, os métodos, a função de aplicabilidade, o
+vetor de recompensas, o vetor de preferências, a política condicionada e os
+critérios de término de uma decisão hierárquica.
+
+\section{Ambiente e dados}
+
+Os dados serão gerados por simulação.
+Cada episódio registrará estados, tarefas, métodos, recompensas, preferências,
+resultados, consumo de recursos, dano, tempo e latência.
+O ambiente deverá permitir cenários repetíveis, configuração de eventos estocásticos,
+execução automatizada, sementes determinísticas e visualização de traços de decisão.
+
+O domínio inicial deverá conter um agente principal, três a cinco tarefas
+compostas, duas a cinco decomposições por tarefa e três a cinco objetivos.
+Um cenário tático ou de sobrevivência é adequado por produzir compromissos
+claros entre missão, segurança, aliados, recursos e tempo.
+
+\section{Implementação HTN}
+
+O HTN definirá a estrutura válida do comportamento.
+O planner será adaptado para calcular $M_{\mathrm{valid}}(s_t,\tau_t)$ e permitir que um
+seletor externo escolha a alternativa.
+As restrições obrigatórias permanecerão exclusivamente na camada simbólica.
+
+\section{Codificação de preferências}
+
+Perfis fixos e regras explícitas converterão estado e contexto em um vetor
+normalizado e servirão como baselines.
+Exemplos incluem aumentar sobrevivência sob baixa saúde, proteção do aliado
+quando seu estado se torna crítico e economia de recursos quando a munição
+diminui.
+Em seguida, será avaliado um codificador baseado em grafo relacional que
+represente objetivos, condições, efeitos, recursos e ameaças; essa representação
+é inspirada em GOAP, mas não executa um planejador GOAP. Um modelo profundo será
+incluído somente se houver dados, orçamento e evidência experimental de que a
+complexidade adicional é justificável.
+Todos os codificadores serão avaliados sob a mesma interface $E(g_t,s_t,p,c_t)\mapsto\mathbf{w}_t$.
+
+\section{Treinamento MORL}
+
+A política receberá estado, tarefa composta, máscara de métodos válidos e vetor
+de preferência.
+A ação será a escolha de um método.
+O treinamento amostrará estados iniciais, configurações de cenário, eventos e
+vetores de preferência.
+O orçamento de treinamento, os hiperparâmetros e as escalas de recompensa serão
+controlados e reportados.
+
+A atribuição de crédito será definida no nível da decisão hierárquica.
+O retorno poderá acumular recompensas durante a execução das subtarefas produzidas
+pelo método até a próxima escolha HTN, término da decomposição ou interrupção por
+replanejamento.
+
+\section{Baselines}
+
+\begin{description}
+\item[Baseline 1 --- primeiro aplicável:] seleciona o primeiro método válido na ordem do domínio.
+\item[Baseline 2 --- prioridade estática:] utiliza prioridades manuais constantes.
+\item[Baseline 3 --- utilidade com pesos fixos:] combina avaliações manuais por um único vetor fixo.
+\item[Baseline 4 --- utilidade dinâmica baseada em regras:] usa regras explícitas para $\mathbf{w}_t$, mas valores manuais, sem aprendizado.
+\item[Baseline 5 --- MORL com perfis ou regras:] usa a política MORL com um codificador simples de preferências.
+\end{description}
+
+Esses baselines separam o ganho produzido por preferências dinâmicas do ganho
+produzido por valores aprendidos.
+Codificadores relacionais e profundos serão comparados à configuração MORL equivalente,
+sem alterar a máscara HTN.
+
+\section{Estudos de ablação}
+
+Serão avaliadas, quando tecnicamente viáveis, as seguintes configurações:
+
+\begin{itemize}
+\item MORL com preferências fixas;
+\item MORL sem filtragem HTN, em ambiente seguro ou com penalidades para invalidez;
+\item HTN com perfis fixos ou regras, sem MORL;
+\item HTN e MORL sem mudanças dinâmicas de preferência;
+\item arquitetura HTN--codificador de preferências--MORL;
+\item codificador relacional versus regras explícitas sob a mesma política MORL.
+\end{itemize}
+
+\section{Procedimento experimental}
+
+Cada arquitetura será executada sobre conjuntos equivalentes de cenários e
+sementes.
+Serão mantidos, tanto quanto possível, os mesmos horizontes, orçamentos
+computacionais e protocolos de ajuste.
+Os logs serão agregados por arquitetura e condição.
+A análise incluirá estatística descritiva, intervalos de confiança, testes
+adequados à distribuição dos dados e tamanhos de efeito.
+
+Mudanças de contexto e preferência serão introduzidas em pontos controlados do
+episódio para medir adaptação.
+Vetores não usados diretamente no treinamento e cenários com combinações novas
+serão reservados para avaliação de generalização.
+
+\input{chapters/metrics}
