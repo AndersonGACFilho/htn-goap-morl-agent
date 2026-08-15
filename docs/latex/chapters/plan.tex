@@ -25,8 +25,9 @@ NPCs são frequentemente controlados por técnicas simbólicas e baseadas em
 regras, como máquinas de estados, Behavior Trees, GOAP e HTN. Essas técnicas
 fornecem previsibilidade, consistência semântica e controle ao projetista, mas
 normalmente dependem de prioridades fixas ou heurísticas construídas
-manualmente. Em ambientes dinâmicos, o número de condições necessárias para
-representar todas as variações de contexto pode crescer rapidamente.
+manualmente.
+Em ambientes dinâmicos, o número de condições necessárias para representar todas
+as variações de contexto pode crescer rapidamente.
 
 O aprendizado por reforço permite adaptação por experiência, porém o
 aprendizado direto de ações de baixo nível amplia os espaços de estado e ação,
@@ -36,23 +37,25 @@ conflitantes, como sobrevivência, cumprimento da missão, proteção de aliados
 conservação de recursos, furtividade e velocidade.
 
 A proposta combina essas propriedades: o HTN define o que é semanticamente
-válido; um Gerador de Pesos Orientado a Objetivos define o que é importante no
-contexto atual; e o MORL escolhe qual método HTN válido deve ser usado para
-decompor a tarefa composta corrente.
+válido; um codificador de preferências fornece $\mathbf{w}_t$ para expressar o
+compromisso vigente; e o MORL escolhe qual método HTN válido deve decompor a
+tarefa composta corrente.
+O codificador é comparado como módulo auxiliar, e não como uma camada de
+planejamento independente.
 
 \section{Problema de pesquisa}
 
 Planejadores HTN tradicionais selecionam métodos por ordem fixa, custos
-manuais ou heurísticas estáticas. Embora previsíveis, esses mecanismos podem
-ser inadequados quando a melhor decomposição depende de saúde, munição,
-condição de aliados, força inimiga, perigos, objetivo da missão, personalidade
-ou eventos ocorridos durante a execução.
+manuais ou heurísticas estáticas.
+Embora previsíveis, esses mecanismos podem ser inadequados quando a melhor
+decomposição depende de saúde, munição, condição de aliados, força inimiga,
+perigos, objetivo da missão, personalidade ou eventos ocorridos durante a execução.
 
 Uma política puramente aprendida, por outro lado, pode selecionar
-comportamentos inválidos, incoerentes ou difíceis de explicar. O problema
-investigado é, portanto, como introduzir adaptação multiobjetivo na escolha de
-métodos HTN sem perder a validade semântica, a interpretabilidade e o controle
-de designer fornecidos pelo planejamento simbólico.
+comportamentos inválidos, incoerentes ou difíceis de explicar.
+O problema investigado é, portanto, como introduzir adaptação multiobjetivo na
+escolha de métodos HTN sem perder a validade semântica, a interpretabilidade e
+o controle de designer fornecidos pelo planejamento simbólico.
 
 \section{Questão principal}
 
@@ -66,7 +69,8 @@ validade semântica, interpretabilidade e desempenho de decisão em tempo real?
 
 \begin{enumerate}
 \item A arquitetura produz melhores compromissos multiobjetivo que prioridades HTN estáticas?
-\item Uma única política pode adaptar decisões a diferentes vetores de preferência sem retreinamento?
+\item Uma única política pode adaptar decisões a diferentes vetores $\mathbf{w}_t$ sem retreinamento?
+\item Um grafo relacional ou um modelo profundo melhora a inferência de $\mathbf{w}_t$ em relação a regras explícitas?
 \item A filtragem simbólica reduz a complexidade de aprendizado e impede métodos inválidos?
 \item As decisões permanecem consistentes com as prioridades correntes do agente?
 \item Qual é o custo computacional da consulta MORL durante a decomposição online?
@@ -74,14 +78,16 @@ validade semântica, interpretabilidade e desempenho de decisão em tempo real?
 
 \section{Delimitação do escopo}
 
-O foco está no nível hierárquico de decisão. A ação da política MORL é um
-método de decomposição HTN, não um comando motor. Movimento, mira, animação,
-desvio de obstáculos, pathfinding e execução individual de ataques serão
-realizados por controladores determinísticos ou sistemas tradicionais de
-jogos.
+O foco está no nível hierárquico de decisão.
+A ação da política MORL é um método de decomposição HTN, não um comando motor.
+Movimento, mira, animação, desvio de obstáculos, pathfinding e execução individual
+de ataques serão realizados por controladores determinísticos ou sistemas
+tradicionais de jogos.
 
 O escopo experimental inicial será restrito a um agente principal, um domínio
 controlado, três a cinco tarefas compostas, duas a cinco alternativas por
-tarefa e três a cinco objetivos. Coordenação multiagente e aprendizado do
-próprio gerador de pesos ficam fora da contribuição principal e poderão ser
-considerados somente após a validação da arquitetura básica.
+tarefa e três a cinco objetivos.
+Coordenação multiagente fica fora da contribuição principal.
+O codificador de grafo é a primeira alternativa
+estrutural; o codificador profundo é condicional aos resultados, aos dados e ao
+orçamento experimental disponíveis.

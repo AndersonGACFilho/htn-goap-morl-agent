@@ -5,9 +5,11 @@
 \section{Aprendizado por reforço}
 
 Aprendizado por reforço é uma área de aprendizado de máquina voltada à tomada
-de decisão sequencial. Um agente interage com um ambiente, observa estados,
-executa ações e recebe recompensas. O objetivo é aprender uma política que
-maximize algum critério de retorno esperado ao longo do tempo.
+de decisão sequencial.
+Um agente interage com um ambiente, observa estados, executa ações e recebe
+recompensas.
+O objetivo é aprender uma política que maximize algum critério de retorno esperado
+ao longo do tempo.
 
 Um problema de aprendizado por reforço pode ser descrito pela interação entre
 agente e ambiente:
@@ -18,24 +20,26 @@ s_t \rightarrow a_t \rightarrow r_{t+1} \rightarrow s_{t+1}.
 
 Nessa interação, $s_t$ é o estado observado no instante $t$, $a_t$ é a ação
 escolhida pelo agente, $r_{t+1}$ é a recompensa recebida após a execução da
-ação e $s_{t+1}$ é o próximo estado do ambiente. O agente busca aprender como
-escolher ações que maximizem recompensas futuras, considerando que uma decisão
-tomada no presente pode afetar estados e recompensas posteriores.
+ação e $s_{t+1}$ é o próximo estado do ambiente.
+O agente busca aprender como escolher ações que maximizem recompensas futuras,
+considerando que uma decisão tomada no presente pode afetar estados e recompensas
+posteriores.
 
 Essa formulação é relevante para a pesquisa porque o projeto investiga agentes
-autônomos capazes de tomar decisões em ambientes simulados. Antes de integrar
-aprendizado diretamente ao agente, é necessário definir claramente como
-estados, ações, recompensas, objetivos e transições serão representados. Por
-isso, a base teórica em Processos de Decisão de Markov, funções de valor,
+autônomos capazes de tomar decisões em ambientes simulados.
+Antes de integrar aprendizado diretamente ao agente, é necessário definir
+claramente como estados, ações, recompensas, objetivos e transições serão
+representados.
+Por isso, a base teórica em Processos de Decisão de Markov, funções de valor,
 diferença temporal e aprendizado por reforço multiobjetivo é importante para
 as etapas futuras do trabalho.
 
 \section{Processos de Decisão de Markov}
 
 Um Processo de Decisão de Markov, ou MDP, é uma formulação matemática para
-problemas de tomada de decisão sequencial sob incerteza. Essa formulação
-fornece a base formal para grande parte dos algoritmos de aprendizado por
-reforço.
+problemas de tomada de decisão sequencial sob incerteza.
+Essa formulação fornece a base formal para grande parte dos algoritmos de
+aprendizado por reforço.
 
 Um MDP pode ser definido como uma tupla:
 
@@ -54,10 +58,10 @@ Nessa definição:
 \end{itemize}
 
 A propriedade de Markov estabelece que o próximo estado depende apenas do
-estado atual e da ação executada, e não de todo o histórico anterior. Em outras
-palavras, se o estado atual contém toda a informação necessária para prever a
-dinâmica futura do ambiente, então o histórico completo pode ser ignorado para
-fins de decisão.
+estado atual e da ação executada, e não de todo o histórico anterior.
+Em outras palavras, se o estado atual contém toda a informação necessária para
+prever a dinâmica futura do ambiente, então o histórico completo pode ser ignorado
+para fins de decisão.
 
 Formalmente, essa propriedade pode ser escrita como:
 
@@ -69,13 +73,14 @@ P(s_{t+1} \mid s_t,a_t).
 
 Em um ambiente discreto inicial, como um GridWorld, essa propriedade significa
 que o estado precisa conter todas as informações relevantes para a decisão do
-agente. Por exemplo, a posição do agente, a posição de recursos, a posição de
-objetivos, o conjunto de obstáculos e variáveis booleanas relevantes devem ser
-suficientes para determinar a dinâmica futura do ambiente.
+agente.
+Por exemplo, a posição do agente, a posição de recursos, a posição de objetivos,
+o conjunto de obstáculos e variáveis booleanas relevantes devem ser suficientes
+para determinar a dinâmica futura do ambiente.
 
-Uma política define o comportamento do agente. Em uma política estocástica,
-$\pi(a \mid s)$ representa a probabilidade de escolher a ação $a$ quando o
-agente está no estado $s$:
+Uma política define o comportamento do agente.
+Em uma política estocástica, $\pi(a \mid s)$ representa a probabilidade de
+escolher a ação $a$ quando o agente está no estado $s$:
 
 \begin{equation}
 \pi(a \mid s).
@@ -131,24 +136,25 @@ E_{\pi}[G_t \mid s_t = s, a_t = a].
 \end{equation}
 
 Para este projeto, os MDPs são relevantes porque fornecem a formulação
-matemática da interação entre agente e ambiente. Eles permitem descrever a
-dinâmica sequencial em termos de estados, ações, transições e recompensas. Em
-etapas futuras, essa formulação permitirá comparar agentes simbólicos com
+matemática da interação entre agente e ambiente.
+Eles permitem descrever a dinâmica sequencial em termos de estados, ações,
+transições e recompensas.
+Em etapas futuras, essa formulação permitirá comparar agentes simbólicos com
 agentes baseados em aprendizado.
 
 \section{Q-Learning como base conceitual}
 
 Q-Learning é um algoritmo clássico de aprendizado por reforço usado para
-aprender uma função de valor de ação. Embora não seja o método principal
-pretendido para esta pesquisa, ele é relevante como fundamento conceitual,
-pois introduz ideias centrais que também aparecem em métodos mais avançados:
-função de valor, equação de Bellman, diferença temporal e atualização baseada
-em experiência.
+aprender uma função de valor de ação.
+Embora não seja o método principal pretendido para esta pesquisa, ele é relevante
+como fundamento conceitual, pois introduz ideias centrais que também aparecem em
+métodos mais avançados: função de valor, equação de Bellman, diferença temporal e
+atualização baseada em experiência.
 
 A função ótima de valor de ação, denotada por $Q^*(s,a)$, representa o retorno
 esperado ao executar a ação $a$ no estado $s$ e seguir uma política ótima a
-partir do próximo estado. Essa função satisfaz a equação de otimalidade de
-Bellman:
+partir do próximo estado.
+Essa função satisfaz a equação de otimalidade de Bellman:
 
 \begin{equation}
 Q^*(s,a) =
@@ -165,9 +171,9 @@ a recompensa imediata obtida após sua execução e o melhor valor futuro
 possível a partir do próximo estado.
 
 Na prática, o agente geralmente não conhece a função de transição
-$P(s' \mid s,a)$ nem a função de recompensa completa do ambiente. Por isso,
-Q-Learning estima os valores de ação a partir de amostras de experiência. Uma
-experiência pode ser representada por:
+$P(s' \mid s,a)$ nem a função de recompensa completa do ambiente.
+Por isso, Q-Learning estima os valores de ação a partir de amostras de experiência.
+Uma experiência pode ser representada por:
 
 \begin{equation}
 (s_t, a_t, r_{t+1}, s_{t+1}).
@@ -217,8 +223,9 @@ Q(s_t,a_t)
 \end{equation}
 
 A intuição é que o agente ajusta sua estimativa atual na direção de um alvo
-temporal. Esse alvo é composto pela recompensa imediata mais a melhor
-estimativa de valor futuro:
+temporal.
+Esse alvo é composto pela recompensa imediata mais a melhor estimativa de
+valor futuro:
 
 \begin{equation}
 \text{target} =
@@ -227,39 +234,44 @@ r_{t+1}
 \gamma \max_{a'} Q(s_{t+1},a').
 \end{equation}
 
-Q-Learning é considerado um método \textit{off-policy}. Isso significa que ele
-pode aprender o valor da política ótima mesmo quando as ações são escolhidas
-por uma política exploratória. Por exemplo, o agente pode escolher ações
-usando uma política $\varepsilon$-\textit{greedy}, mas atualizar sua função
-$Q$ usando o melhor valor futuro possível, dado por
-$\max_{a'} Q(s_{t+1},a')$.
+Q-Learning é considerado um método \textit{off-policy}.
+Isso significa que ele pode aprender o valor da política ótima mesmo
+quando as ações são escolhidas por uma política exploratória.
+Por exemplo, o agente pode escolher ações usando uma política
+$\varepsilon$-\textit{greedy}, mas atualizar sua função $Q$ usando o melhor
+valor futuro possível, dado por $\max_{a'} Q(s_{t+1},a')$.
 
-Para este plano, Q-Learning não deve ser tratado como técnica principal da
-pesquisa nem como componente previsto da arquitetura final. Sua função é
-servir como base conceitual para entender como funções de valor podem ser
-estimadas a partir da interação com o ambiente.
+Para este plano, Q-Learning não deve ser tratado como técnica
+principal da pesquisa nem como componente previsto da arquitetura
+final.
+Sua função é servir como base conceitual para entender como
+funções de valor podem ser estimadas a partir da interação
+com o ambiente.
 
 A técnica de interesse para a continuidade do projeto é aprendizado por
-reforço multiobjetivo. Nesse caso, em vez de aprender uma única função de
-valor escalar, o agente deve lidar com múltiplos critérios de decisão,
-representados por diferentes sinais de recompensa ou diferentes funções de
-valor. Assim, Q-Learning aparece neste plano apenas como ponto de partida
-conceitual para compreender funções de valor e atualização temporal, enquanto
-MORL representa a direção metodológica pretendida para a camada de aprendizado.
+reforço multiobjetivo.
+Nesse caso, em vez de aprender uma única função de valor escalar, o
+agente deve lidar com múltiplos critérios de decisão, representados por
+diferentes sinais de recompensa ou diferentes funções de valor.
+Assim, Q-Learning aparece neste plano apenas como ponto de partida
+conceitual para compreender funções de valor e atualização temporal,
+enquanto MORL representa a direção metodológica pretendida para a camada
+de aprendizado.
 
 \section{Multi-armed bandits}
 
 Uma base importante estudada no início da pesquisa foi o problema dos
-\textit{multi-armed bandits}. Nesse problema, o agente escolhe repetidamente
-entre $k$ ações, cada uma com uma recompensa de média desconhecida. O valor
-real de uma ação é:
+\textit{multi-armed bandits}.
+Nesse problema, o agente escolhe repetidamente entre $k$ ações, cada uma
+com uma recompensa de média desconhecida.
+O valor real de uma ação é:
 
 \begin{equation}
 q_*(a) = E[R_t \mid A_t = a].
 \end{equation}
 
-Como esse valor é desconhecido, o agente mantém uma estimativa $Q_t(a)$. A
-estimativa por média amostral é:
+Como esse valor é desconhecido, o agente mantém uma estimativa $Q_t(a)$.
+A estimativa por média amostral é:
 
 \begin{equation}
 Q_t(a) =
@@ -269,39 +281,43 @@ Q_t(a) =
 
 Essa formulação é importante porque introduz conceitos fundamentais como
 estimativa de valor, exploração, aproveitamento e atualização incremental em
-um cenário mais simples do que MDPs completos. Enquanto bandits não modelam
-transições explícitas entre estados, MDPs incorporam o efeito das ações sobre
-estados futuros. Por isso, bandits são uma porta de entrada conceitual para o
+um cenário mais simples do que MDPs completos.
+Enquanto bandits não modelam transições explícitas entre estados, MDPs
+incorporam o efeito das ações sobre estados futuros.
+Por isso, bandits são uma porta de entrada conceitual para o
 estudo de aprendizado por reforço.
 
 \section{Atualização incremental}
 
 A atualização incremental evita recalcular a média completa a cada nova
-observação. A regra geral é:
+observação.
+A regra geral é:
 
 \begin{equation}
 Q_{n+1}(a) = Q_n(a) + \alpha_n(R_n - Q_n(a)).
 \end{equation}
 
-O termo $R_n - Q_n(a)$ representa o erro de previsão. Quando $\alpha_n = 1/n$,
-a atualização equivale à média amostral. Quando $\alpha$ é constante, o
-método dá maior peso a recompensas recentes, o que é útil em ambientes não
-estacionários.
+O termo $R_n - Q_n(a)$ representa o erro de previsão.
+Quando $\alpha_n = 1/n$, a atualização equivale à média amostral.
+Quando $\alpha$ é constante, o método dá maior peso a recompensas recentes,
+o que é útil em ambientes não estacionários.
 
-Essa ideia reaparece no Q-Learning. A diferença é que, no caso de Q-Learning,
-o erro de atualização inclui não apenas a recompensa imediata, mas também uma
-estimativa do melhor valor futuro possível.
+Essa ideia reaparece no Q-Learning.
+A diferença é que, no caso de Q-Learning, o erro de atualização inclui
+não apenas a recompensa imediata, mas também uma estimativa do melhor
+valor futuro possível.
 
 \section{Exploração e aproveitamento}
 
 O dilema exploração versus aproveitamento é central em aprendizado por
-reforço. Explorar significa testar ações pouco conhecidas. Aproveitar
-significa escolher a ação com melhor valor estimado.
+reforço.
+Explorar significa testar ações pouco conhecidas.
+Aproveitar significa escolher a ação com melhor valor estimado.
 
 Uma política simples para equilibrar os dois comportamentos é
-$\varepsilon$-\textit{greedy}. Com probabilidade $1-\varepsilon$, o agente
-escolhe a melhor ação conhecida. Com probabilidade $\varepsilon$, escolhe uma
-ação aleatória.
+$\varepsilon$-\textit{greedy}.
+Com probabilidade $1-\varepsilon$, o agente escolhe a melhor ação conhecida.
+Com probabilidade $\varepsilon$, escolhe uma ação aleatória.
 
 Outra estratégia estudada foi UCB, que escolhe ações considerando tanto o
 valor estimado quanto a incerteza:
@@ -318,8 +334,9 @@ Aqui, $N_t(a)$ indica quantas vezes a ação $a$ foi escolhida até o instante
 $t$, e $c$ controla a intensidade da exploração.
 
 No projeto, exploração e aproveitamento serão relevantes principalmente nas
-etapas futuras de aprendizado. A camada simbólica atual não aprende por
-tentativa e erro; ela usa decomposição explícita de objetivos e ações.
+etapas futuras de aprendizado.
+A camada simbólica atual não aprende por tentativa e erro; ela usa
+decomposição explícita de objetivos e ações.
 Entretanto, quando métodos de aprendizado forem introduzidos, será necessário
 definir como o agente explora ações sem violar restrições simbólicas
 importantes.
@@ -327,24 +344,29 @@ importantes.
 \section{Planejamento simbólico}
 
 Planejamento simbólico representa estados, tarefas, ações e restrições por
-estruturas discretas e interpretáveis. Em vez de aprender diretamente todo o
-comportamento, o agente raciocina sobre pré-condições, efeitos e relações de
-decomposição. Essa representação permite incorporar conhecimento de domínio e
-impedir decisões incompatíveis com regras narrativas ou de gameplay.
+estruturas discretas e interpretáveis.
+Em vez de aprender diretamente todo o comportamento, o agente raciocina sobre
+pré-condições, efeitos e relações de decomposição.
+Essa representação permite incorporar conhecimento de domínio e impedir
+decisões incompatíveis com regras narrativas ou de gameplay.
 
 No presente trabalho, as restrições simbólicas são tratadas como
-\textit{hard constraints}. Preferências como segurança, rapidez ou economia de
-recursos são tratadas separadamente como critérios flexíveis. Essa separação é
-essencial: uma preferência pode mudar em tempo de execução, enquanto uma regra
-como não utilizar um recurso indisponível deve permanecer obrigatória.
+\textit{hard constraints}.
+Preferências como segurança, rapidez ou economia de recursos são tratadas
+separadamente como critérios flexíveis.
+Essa separação é essencial: uma preferência pode mudar em tempo de execução,
+enquanto uma regra como não utilizar um recurso indisponível deve permanecer
+obrigatória.
 
 \section{Planejamento HTN}
 
 HTN, ou \textit{Hierarchical Task Network Planning}, decompõe tarefas
 compostas em subtarefas até produzir tarefas primitivas executáveis
-\cite{erol1994,georgievski2014,nau2003shop2}. Um domínio HTN define tarefas,
-métodos de decomposição, pré-condições e restrições. Para uma tarefa composta
-$\tau_t$ e estado $s_t$, o conjunto de métodos aplicáveis é:
+\cite{erol1994,georgievski2014,nau2003shop2}.
+Um domínio HTN define tarefas, métodos de decomposição, pré-condições
+e restrições.
+Para uma tarefa composta $\tau_t$ e estado $s_t$, o conjunto de métodos
+aplicáveis é:
 
 \begin{equation}
 M_{\mathrm{valid}}(s_t,\tau_t)
@@ -353,36 +375,43 @@ M_{\mathrm{valid}}(s_t,\tau_t)
 \end{equation}
 
 Na arquitetura proposta, o HTN não escolhe imediatamente o primeiro método
-aplicável. Ele produz o conjunto de alternativas válidas e o entrega ao
-componente aprendido. Assim, o modelo simbólico mantém a responsabilidade pela
-validade, enquanto a preferência entre alternativas válidas pode ser adaptada
-por experiência.
+aplicável.
+Ele produz o conjunto de alternativas válidas e o entrega ao componente
+aprendido.
+Assim, o modelo simbólico mantém a responsabilidade pela validade, enquanto
+a preferência entre alternativas válidas pode ser adaptada por experiência.
 
-\section{GOAP e geração de preferências}
+\section{Codificação de preferências}
 
 GOAP representa objetivos, ações, pré-condições, efeitos e custos para buscar
 sequências que transformem o estado corrente em um estado desejado
-\cite{orkin2005,orkin2006}. A proposta atual não exige a implementação de um
-segundo planejador GOAP completo entre HTN e MORL. Em vez disso, princípios
-orientados a objetivos são usados por um Gerador de Pesos Orientado a Objetivos
-(
-\textit{Goal-Oriented Weight Generator} -- GOWG).
+\cite{orkin2005,orkin2006}.
+Neste trabalho, GOAP não será introduzido como um segundo planejador entre
+HTN e MORL. Suas relações entre objetivos, condições, efeitos e recursos
+podem, contudo, inspirar a representação de contexto usada por um codificador
+de preferências.
 
-O gerador transforma objetivo, estado, personalidade e contexto em um vetor
+O codificador transforma objetivo, estado, perfil e contexto em um vetor
 normalizado de preferências:
 
 \begin{equation}
-\mathbf{w}_t = G(g_t,s_t,p,c_t),
+\mathbf{w}_t = E(g_t,s_t,p,c_t),
 \qquad
 w_{i,t}\geq 0,
 \qquad
 \sum_i w_{i,t}=1.
 \end{equation}
 
-Na primeira investigação, $G$ será determinístico e baseado em regras. Essa
-decisão evita introduzir um segundo problema de aprendizado e mantém as
-mudanças de prioridade reproduzíveis e interpretáveis. O aprendizado do
-gerador é considerado trabalho futuro.
+Nessa expressão, $E$ é o codificador, $g_t$ é o objetivo corrente, $s_t$ é o
+estado, $p$ representa um perfil comportamental, $c_t$ é o contexto e $w_{i,t}$
+é o peso do objetivo $i$ no instante $t$.
+Perfis fixos e regras explícitas constituem baselines reproduzíveis.
+A principal alternativa estrutural é um grafo relacional inspirado em GOAP,
+sem executar sua busca de planejamento; um modelo de aprendizado profundo será
+avaliado apenas se os dados, o orçamento e os resultados dos baselines justificarem
+essa extensão.
+Assim, a comparação entre codificadores é uma parte auxiliar da pesquisa, enquanto
+a contribuição central permanece a seleção MORL de métodos HTN válidos.
 
 \section{Aprendizado por reforço multiobjetivo}
 
@@ -394,12 +423,12 @@ No MORL, a recompensa é um vetor
 \left[r_{1,t},r_{2,t},\dots,r_{n,t}\right].
 \end{equation}
 
-Cada componente representa um objetivo, como sobrevivência, progresso da
-missão, proteção de aliados, conservação de recursos ou tempo. A política pode
-ser condicionada por $\mathbf{w}_t$, permitindo que uma única aproximação
-represente diferentes compromissos entre objetivos. Trabalhos sobre pesos
-dinâmicos e transferência de políticas fornecem referências para essa
-formulação \cite{abels2019,barreto2017successor,alegre2022ols,alegre2026gpi}.
+Cada componente $r_{i,t}$ representa um objetivo, como sobrevivência,
+progresso da missão, proteção de aliados, conservação de recursos ou tempo.
+A política pode ser condicionada por $\mathbf{w}_t$, permitindo que uma única
+aproximação represente diferentes compromissos entre objetivos.
+Trabalhos sobre pesos dinâmicos e transferência de políticas fornecem
+referências para essa formulação \cite{abels2019,barreto2017successor,alegre2022ols,alegre2026gpi}.
 
 Para cada método válido, a política estima um vetor de valor:
 
@@ -408,6 +437,12 @@ Para cada método válido, a política estima um vetor de valor:
 =
 \left[Q_1,Q_2,\dots,Q_n\right].
 \end{equation}
+
+Aqui, $\tau_t$ é a tarefa composta corrente, $m$ é um método candidato e cada
+$Q_i$ estima o retorno descontado do objetivo $i$ ao selecionar $m$. A
+dependência explícita de $\mathbf{w}_t$ permite à aproximação aprender valores
+ou políticas condicionadas pela preferência, sem transferir ao HTN a decisão de
+compromisso entre objetivos.
 
 Sob escalarização linear, a seleção é:
 
@@ -426,12 +461,24 @@ mira ou animação.
 \section{Decisão hierárquica e abstração temporal}
 
 A seleção de um método HTN pode produzir uma sequência de subtarefas cuja
-execução dura vários ticks. Consequentemente, a decisão aprendida ocorre em uma
-escala temporal superior à de ações primitivas e pode ser modelada de forma
-compatível com abstração temporal e formulações semi-Markovianas
-\cite{sutton1999options}. O retorno associado a uma escolha de método deve
-considerar os resultados obtidos durante a execução da decomposição, até a
-próxima decisão hierárquica ou até uma condição de interrupção.
+execução dura vários ticks.
+Consequentemente, a decisão aprendida ocorre em uma escala temporal superior à
+de ações primitivas e pode ser modelada de forma compatível com abstração
+temporal e formulações semi-Markovianas \cite{sutton1999options,lin2024hipo}.
+O retorno associado a uma escolha de método deve considerar os resultados obtidos
+durante a execução da decomposição, até a próxima decisão hierárquica ou até uma
+condição de interrupção.
+Se o método selecionado dura $k$ passos primitivos, a unidade de atribuição de
+crédito é:
+
+\begin{equation}
+\mathbf{R}^{\mathrm{method}}_t =
+\sum_{i=0}^{k-1}\gamma^i\mathbf{r}_{t+i}.
+\end{equation}
+
+Nessa expressão, $\mathbf{r}_{t+i}$ é a recompensa vetorial no passo primitivo
+$t+i$, $\gamma$ é o fator de desconto e $k$ é a duração da execução até a
+próxima escolha de método, término ou interrupção.
 
 \section{Arquitetura híbrida proposta}
 
@@ -442,7 +489,7 @@ A integração é definida pelo seguinte fluxo:
 &\longrightarrow \text{filtragem HTN}
 \longrightarrow M_{\mathrm{valid}}(s_t,\tau_t),\\
 (g_t,s_t,p,c_t)
-&\longrightarrow G
+&\longrightarrow E
 \longrightarrow \mathbf{w}_t,\\
 (M_{\mathrm{valid}},s_t,\tau_t,\mathbf{w}_t)
 &\longrightarrow \text{MORL}
@@ -450,8 +497,8 @@ A integração é definida pelo seguinte fluxo:
 \end{align}
 
 O método selecionado é decomposto em subtarefas, e as tarefas primitivas são
-executadas por controladores tradicionais. Após a execução, o ambiente produz
-um novo estado e um vetor de recompensas, permitindo atualizar ou avaliar a
-política. Essa divisão torna explícitas quatro responsabilidades: validade
-semântica, preferência comportamental, utilidade aprendida e execução de baixo
-nível.
+executadas por controladores tradicionais.
+Após a execução, o ambiente produz um novo estado e um vetor de recompensas,
+permitindo atualizar ou avaliar a política.
+Essa divisão torna explícitas quatro responsabilidades: validade semântica,
+preferência comportamental, utilidade aprendida e execução de baixo nível.

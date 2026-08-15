@@ -37,9 +37,9 @@
 \section{Fase 5 --- preferências}
 
 \begin{itemize}
-\item implementar o GOWG determinístico;
-\item validar normalização e mudanças contextuais;
-\item criar perfis e condições de teste.
+\item implementar perfis fixos e regras explícitas como baselines;
+\item implementar e validar o codificador relacional de preferências;
+\item validar normalização, mudanças contextuais e condições de teste.
 \end{itemize}
 
 \section{Fase 6 --- MORL e integração}
@@ -48,7 +48,9 @@
 \item selecionar e implementar o algoritmo MORL;
 \item integrar máscara de métodos válidos;
 \item treinar a política sob múltiplas preferências;
-\item validar o ciclo online HTN--GOWG--MORL.
+\item validar o ciclo online HTN--codificador de preferências--MORL;
+\item decidir, com base nos resultados e no orçamento, se um codificador
+profundo deve ser incluído.
 \end{itemize}
 
 \section{Fase 7 --- baselines e ablações}

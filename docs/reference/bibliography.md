@@ -23,7 +23,7 @@ This consolidated list includes the references from the work plan and the resear
 14. Roijers, D. M.; Vamplew, P.; Whiteson, S.; Dazeley, R. A Survey of Multi-Objective Sequential Decision-Making. *Journal of Artificial Intelligence Research*, 48, 67-113, 2013.
 15. Abels, A.; Roijers, D. M.; Lenaerts, T.; Nowe, A.; Steckelmacher, D. Dynamic Weights in Multi-Objective Deep Reinforcement Learning. *Proceedings of the 36th International Conference on Machine Learning*, PMLR 97, 11-20, 2019.
 16. Alegre, L. N.; Bazzan, A. L. C.; Roijers, D. M.; Nowe, A.; da Silva, B. C. [Generalized Policy Improvement for Efficient and Robust Multi-Objective Reinforcement Learning](https://doi.org/10.1007/s10458-026-09736-w). *Autonomous Agents and Multi-Agent Systems*, 40(1), 2026.
-17. Felten, F.; Alegre, L. N.; Nowe, A.; Bazzan, A. L. C.; Talbi, E.-G.; Dutech, A.; Hutsebaut-Buysse, M.; Baier, H.; Roijers, D. M.; da Silva, B. C.; Mannion, P. A Toolkit for Reliable Benchmarking and Research in Multi-Objective Reinforcement Learning. *Advances in Neural Information Processing Systems*, 37, 2023.
+17. Felten, F.; Alegre, L. N.; Nowe, A.; Bazzan, A. L. C.; Talbi, E.-G.; Danoy, G.; da Silva, B. C. A Toolkit for Reliable Benchmarking and Research in Multi-Objective Reinforcement Learning. *Advances in Neural Information Processing Systems*, 37, 2023.
 18. Felten, F.; Talbi, E.-G.; Danoy, G. Multi-Objective Reinforcement Learning Based on Decomposition: A Taxonomy and Framework. *Journal of Artificial Intelligence Research*, 79, 679-723, 2024.
 19. Vamplew, P.; Dazeley, R.; Berry, A.; Issabekov, R.; Dekker, E. Empirical Evaluation Methods for Multiobjective Reinforcement Learning Algorithms. *Machine Learning*, 84, 51-80, 2011.
 

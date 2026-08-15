@@ -7,7 +7,7 @@
 A hipótese principal é que uma política MORL condicionada por preferências
 pode selecionar métodos de decomposição HTN de forma mais adaptativa que
 prioridades estáticas ou heurísticas de pesos fixos, mantendo a validade
-semântica garantida pelo HTN.
+semântica garantida pelo HTN\@.
 
 \section{Hipóteses secundárias}
 
@@ -33,6 +33,11 @@ escalarizada final.
 \item[H5 --- redução do espaço de decisão:] restringir o MORL aos métodos HTN
 aplicáveis produzirá um espaço de ação menor e semanticamente mais significativo
 que o aprendizado direto de ações primitivas.
+
+\item[H6 --- codificação de preferências:] sob a mesma política MORL e a mesma
+máscara HTN, um codificador relacional de preferências poderá ser comparado de
+forma controlada a perfis fixos e regras explícitas; um codificador profundo só
+será considerado se essa comparação justificar maior complexidade.
 \end{description}
 
 \section{Componentes da arquitetura}
@@ -40,33 +45,40 @@ que o aprendizado direto de ações primitivas.
 \subsection{HTN: validade e estrutura}
 
 O HTN define tarefas compostas e primitivas, métodos, pré-condições, requisitos
-de recursos e restrições narrativas ou de gameplay. Para cada decisão, ele
-produz $M_{\mathrm{valid}}(s_t,\tau_t)$. Métodos impossíveis ou proibidos são
-eliminados antes da consulta ao modelo aprendido.
+de recursos e restrições narrativas ou de gameplay.
+Para cada decisão, ele produz $M_{\mathrm{valid}}(s_t,\tau_t)$.
+Métodos impossíveis ou proibidos são eliminados antes da consulta ao modelo aprendido.
 
-\subsection{Gerador de Pesos Orientado a Objetivos}
+\subsection{Codificador de preferências}
 
-O GOWG produz $\mathbf{w}_t$ a partir do objetivo, estado, personalidade e
-contexto. Exemplos de componentes são sobrevivência, missão, proteção de
-aliados, conservação de recursos, furtividade e velocidade. Regras como
-``aumentar o peso de sobrevivência quando a saúde diminui'' serão explicitadas
-e versionadas para garantir reprodutibilidade.
+O codificador produz $\mathbf{w}_t$ a partir do objetivo, estado, perfil e
+contexto.
+Seus componentes podem representar sobrevivência, missão, proteção de aliados,
+conservação de recursos, furtividade e velocidade.
+Perfis fixos e regras como ``aumentar o peso de sobrevivência quando a saúde diminui''
+serão explicitados e versionados como baselines.
+Um grafo relacional inspirado em relações de objetivo, condição, efeito e recurso
+do GOAP será a alternativa estrutural, sem adicionar uma busca GOAP ao ciclo.
+Um codificador profundo é uma extensão condicional, não uma premissa da arquitetura.
 
 \subsection{MORL: seleção de método}
 
 O MORL recebe estado, tarefa composta, vetor de preferência e máscara de
-métodos válidos. Sua ação é escolher um método HTN. Portanto, a formulação
-corrige a ambiguidade da hipótese inicial: o MORL não é a camada motora e não
-substitui os controladores de execução. Ele decide \emph{como decompor} a tarefa
-corrente entre alternativas semanticamente permitidas.
+métodos válidos.
+Sua ação é escolher um método HTN.
+Portanto, a formulação corrige a ambiguidade da hipótese inicial: o MORL não é a
+camada motora e não substitui os controladores de execução.
+Ele decide \emph{como decompor} a tarefa corrente entre alternativas semanticamente
+permitidas.
 
 \section{Exemplo de decisão}
 
 Para a tarefa composta \texttt{HandleThreat}, o domínio pode definir os métodos
 \texttt{Direct\-Engagement}, \texttt{Seek\-Cover},
-\texttt{Protect\-Ally}, \texttt{Retreat} e \texttt{Flank}. Se não
-houver rota lateral, \texttt{Flank} é removido. Se não houver aliado,
-\texttt{Protect\-Ally} é removido. O MORL compara apenas os métodos restantes sob
+\texttt{Protect\-Ally}, \texttt{Retreat} e \texttt{Flank}.
+Se não houver rota lateral, \texttt{Flank} é removido.
+Se não houver aliado, \texttt{Protect\-Ally} é removido.
+O MORL compara apenas os métodos restantes sob
 $\mathbf{w}_t$.
 
 Uma explicação de decisão poderá assumir a forma: o agente selecionou
@@ -79,7 +91,7 @@ possuíam os maiores pesos.
 \begin{enumerate}
 \item o HTN identifica a tarefa composta corrente;
 \item o HTN calcula os métodos aplicáveis;
-\item o GOWG gera o vetor de preferências;
+\item o codificador de preferências fornece $\mathbf{w}_t$;
 \item o MORL seleciona um método válido;
 \item o método é decomposto em subtarefas;
 \item controladores tradicionais executam as tarefas primitivas;

@@ -621,6 +621,7 @@ dependencies = [
     { name = "cairosvg" },
     { name = "flake8" },
     { name = "gymnasium" },
+    { name = "latexmk" },
     { name = "matplotlib" },
     { name = "mypy" },
     { name = "numpy" },
@@ -648,6 +649,7 @@ requires-dist = [
     { name = "cairosvg", specifier = ">=2.9.0" },
     { name = "flake8" },
     { name = "gymnasium" },
+    { name = "latexmk", specifier = ">=0.0.2" },
     { name = "matplotlib" },
     { name = "mypy" },
     { name = "numpy" },
@@ -791,6 +793,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/06/7399a607f434119c6e1fdc8ec89a8d51ccccadf3341dee4ead6bd14caaf5/kiwisolver-1.5.0-graalpy312-graalpy250_312_native-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c31c13da98624f957b0fb1b5bae5383b2333c2c3f6793d9825dd5ce79b525cb7", size = 194295, upload-time = "2026-03-09T13:15:38.22Z" },
     { url = "https://files.pythonhosted.org/packages/b5/91/53255615acd2a1eaca307ede3c90eb550bae9c94581f8c00081b6b1c8f44/kiwisolver-1.5.0-graalpy312-graalpy250_312_native-win_amd64.whl", hash = "sha256:1f1489f769582498610e015a8ef2d36f28f505ab3096d0e16b4858a9ec214f57", size = 75987, upload-time = "2026-03-09T13:15:39.65Z" },
 ]
+
+[[package]]
+name = "latexmk"
+version = "0.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7f/7b/e121989e2509ea9a96fa4b9a4c8a071c4869e45c0abccae1363ebb1f2b0b/latexmk-0.0.2.tar.gz", hash = "sha256:c9f4fd7dc1ff7d48bf715baf7a50c9aeeda49f880f5d31ea32a21e1f7f8c9f14", size = 2075, upload-time = "2025-07-13T02:57:17.532Z" }
 
 [[package]]
 name = "librt"
