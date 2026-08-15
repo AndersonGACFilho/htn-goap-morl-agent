@@ -1,0 +1,48 @@
+\documentclass[ppgc,pep,english,brazilian]{infufrgs}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{ragged2e}
+
+\geometry{
+    a4paper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+\fontsize{12}{14.4}\selectfont
+\singlespacing
+\justifying
+
+\noindent
+\textbf{RESUMO:}
+Autonomous agents in simulated environments, such as in digital games, often need to balance multiple competing objectives, for example, progressing in a task, avoiding threats, and managing resources. In this context, purely symbolic approaches, such as Hierarchical Task Network (HTN) planning and Goal-Oriented Action Planning (GOAP), offer control and interpretability, but can become fragile in complex and stochastic scenarios.
+%
+On the other hand, Multi-Objective Reinforcement Learning (MORL) provides adaptation and trade-off optimization, yet tends to be difficult to scale to complex scenarios when applied in isolation. This work proposes a three-layer hybrid architecture that combines HTN, GOAP, and MORL. The strategic layer (HTN) receives the symbolic state of an agent and decomposes high-level objectives into abstract tasks, providing the interpretable structure of the behavior.
+%
+The tactical layer (GOAP) acts as a dynamic priority modulator: given the current state and the candidate tasks, it generates a weight vector that quantifies the relative importance of each objective.
+%
+Finally, the execution layer (MORL) selects a concrete action by maximizing a linear combination of the objectives.
+%
+As an initial proof of concept, a standalone HTN baseline was implemented and integrated with a deterministic GridWorld environment, featuring sensors, pathfinding, and replanning.
+Next, experiments will be conducted toward multi-objective domains, implementing the GOAP module with dynamic weight generation via short-horizon symbolic planning, and integrating trained MORL policies.
+Additionally, we will explore Generalized Policy Improvement (GPI) techniques for zero-shot policy transfer, enabling generalization over different weight vectors.
+%
+The proposed architecture is expected to produce agents that are more adaptive and achieve better performance in multi-objective scenarios than purely symbolic approaches, while maintaining the explainability of tactical and strategic decisions.
+
+\medskip
+
+\noindent
+\textbf{PALAVRAS-CHAVE:}
+Symbolic planning; Multi-objective reinforcement learning; Autonomous agents.
+
+\end{document}

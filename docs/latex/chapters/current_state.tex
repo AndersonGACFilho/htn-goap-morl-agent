@@ -1,0 +1,58 @@
+% =============================================================================
+\chapter{Estado Atual da Implementação}
+% =============================================================================
+
+\section{Componentes disponíveis}
+
+Até julho de 2026, a arquitetura completa ainda não está implementada. O
+baseline disponível contém:
+
+\begin{itemize}
+\item representação simbólica do estado;
+\item pré-condições e efeitos;
+\item tarefas primitivas e compostas;
+\item métodos de decomposição e domínio HTN;
+\item planner recursivo com backtracking;
+\item agente executor e execução por ticks;
+\item sensores e atualização do estado;
+\item replanejamento inicial;
+\item abstração de pathfinding e BFS para GridWorld;
+\item ambiente GridWorld e renderer em terminal;
+\item documentação técnica inicial.
+\end{itemize}
+
+\section{Interpretação correta do estágio atual}
+
+O código existente demonstra a infraestrutura simbólica e operacional
+necessária para decompor e executar tarefas. Ele ainda seleciona métodos por
+lógica determinística do planner. Não existe, neste estágio, política MORL
+treinada, vetor dinâmico de preferências integrado ao planner ou máscara de
+métodos utilizada por um modelo aprendido.
+
+Portanto, o baseline deve ser reportado como infraestrutura inicial, e não como
+validação da hipótese completa.
+
+\section{Lacunas para a nova formulação}
+
+As principais lacunas são:
+
+\begin{itemize}
+\item alterar o planner para expor o conjunto de métodos aplicáveis;
+\item definir identificadores e observações estáveis para tarefas e métodos;
+\item implementar o GOWG determinístico;
+\item definir objetivos e recompensas vetoriais;
+\item definir o horizonte de crédito associado a cada escolha hierárquica;
+\item implementar treinamento e inferência MORL com máscara de validade;
+\item criar baselines de ordem fixa, prioridade estática e utilidade manual;
+\item adicionar logs completos de decisão;
+\item implementar testes unitários, integração e experimentos automatizados;
+\item estabelecer protocolo estatístico com cenários e sementes repetidas.
+\end{itemize}
+
+\section{Compatibilidade do baseline com a proposta}
+
+A implementação atual não precisa ser descartada. Tarefas compostas, métodos,
+pré-condições, efeitos, sensores e replanejamento são diretamente reutilizáveis.
+A principal mudança arquitetural é transformar a seleção de método em um ponto
+de extensão explícito. A execução de tarefas primitivas continua separada e
+permanece determinística no escopo inicial.
