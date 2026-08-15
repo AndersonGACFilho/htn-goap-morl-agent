@@ -4,6 +4,27 @@ Standalone implementation of a **Hierarchical Task Network** planner with a sens
 
 ---
 
+## Documentation
+
+Run these commands from the repository root to preview the MkDocs site locally:
+
+```bash
+uv sync --group docs
+uv run --group docs mkdocs serve
+```
+
+Open `http://127.0.0.1:8000` in a browser. The server reloads when documentation files change.
+
+To produce a static site and validate the documentation build:
+
+```bash
+uv run --group docs mkdocs build --strict
+```
+
+The generated site is written to `site/`.
+
+---
+
 ## Current Implementation
 
 The `htn` module currently implements:

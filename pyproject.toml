@@ -53,3 +53,8 @@ line-length = 88
 python_version = "3.12"
 ignore_missing_imports = true
 strict = false
+
+[dependency-groups]
+docs = [
+    "mkdocs-material>=9.7.0",
+]

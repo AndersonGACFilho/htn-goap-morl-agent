@@ -279,3 +279,4 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm+all,git
 
 project_context.txt
+/graphify-out/
