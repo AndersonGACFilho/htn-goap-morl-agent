@@ -17,7 +17,7 @@ Each node returns a status:
 Success
 Failure
 Running
-````
+```
 
 These statuses tell the tree whether a behavior:
 
