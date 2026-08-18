@@ -9,7 +9,7 @@ de decisão sequencial.
 Um agente interage com um ambiente, observa estados, executa ações e recebe
 recompensas.
 O objetivo é aprender uma política que maximize algum critério de retorno esperado
-ao longo do tempo.
+ao longo do tempo \cite{sutton2018}.
 
 Um problema de aprendizado por reforço pode ser descrito pela interação entre
 agente e ambiente:
@@ -344,7 +344,7 @@ importantes.
 \section{Planejamento simbólico}
 
 Planejamento simbólico representa estados, tarefas, ações e restrições por
-estruturas discretas e interpretáveis.
+estruturas discretas e interpretáveis \cite{ghallab2004}.
 Em vez de aprender diretamente todo o comportamento, o agente raciocina sobre
 pré-condições, efeitos e relações de decomposição.
 Essa representação permite incorporar conhecimento de domínio e impedir
@@ -435,6 +435,13 @@ avaliado apenas se os dados, o orçamento e os resultados dos baselines justific
 essa extensão.
 Assim, a comparação entre fontes de preferência é uma parte auxiliar da pesquisa, enquanto
 a contribuição central permanece a seleção MORL de métodos HTN válidos.
+Em um contexto mais amplo de integração entre planejamento e aprendizado, uma
+base de políticas aprendidas pode apoiar a composição de soluções para tarefas
+complexas \cite{kuric2024}, e planejadores relacionais podem atuar em conjunto
+com RL para favorecer eficiência amostral, transferência e generalização
+\cite{prabhakar2025}. Esses trabalhos reforçam a pertinência de arquiteturas
+híbridas, sem resolver diretamente a seleção MORL de métodos HTN condicionada
+por preferências investigada nesta proposta.
 
 \section{Aprendizado por reforço multiobjetivo}
 
@@ -450,8 +457,9 @@ Cada componente $r_{i,t}$ representa um objetivo, como sobrevivência,
 progresso da missão, proteção de aliados, conservação de recursos ou tempo.
 A política pode ser condicionada por $\mathbf{w}_t$, permitindo que uma única
 aproximação represente diferentes compromissos entre objetivos.
-Trabalhos sobre pesos dinâmicos e transferência de políticas fornecem
-referências para essa formulação \cite{abels2019,barreto2017successor,alegre2022ols,alegre2026gpi}.
+Trabalhos sobre pesos dinâmicos, \textit{successor features} e transferência de
+políticas fornecem referências para essa formulação
+\cite{abels2019,barreto2017successor,borsa2019usfa,barreto2020fast,alegre2022ols,alegre2026gpi}.
 
 Para cada método válido, a política estima um vetor de valor:
 
@@ -495,6 +503,14 @@ semanticamente aceitáveis, em vez de aprender diretamente ações de movimento,
 mira ou animação.
 
 \section{Decisão hierárquica e abstração temporal}
+
+A literatura de aprendizado por reforço hierárquico organiza abstrações temporais
+em múltiplos mecanismos de descoberta e composição \cite{klissarov2025hrl}.
+Trabalhos sobre \textit{Option Keyboard} mostram como habilidades temporalmente
+estendidas podem ser combinadas a partir de uma base de comportamentos
+\cite{barreto2019optionkeyboard,alegre2025optionkeyboard}. Esses antecedentes
+motivam a abstração da proposta, sem identificar métodos HTN diretamente com
+\textit{options}.
 
 A seleção de um método HTN pode produzir uma sequência de subtarefas cuja
 execução dura vários ticks.
