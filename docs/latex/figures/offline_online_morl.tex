@@ -14,7 +14,7 @@
     arrow/.style={->, thick}
 ]
     \node[font=\bfseries\large,text=morlred] (offlineTitle)
-        {OFFLINE --- Training};
+        {PRE-DEPLOYMENT --- Training};
     \node[offline, below=7mm of offlineTitle] (episodes)
         {Sample episodes\\$(C,WS,\mathbf{w})$};
     \node[offline, below=of episodes] (explore)
@@ -26,7 +26,7 @@
     \node[offline, below=of reward] (returns)
         {Method return\\$\mathbf{R}_M=\sum_{i=0}^{k-1}\gamma^i\mathbf{r}_{t+i}$};
     \node[offline, below=of returns] (learn)
-        {Learn $\mathbf{Q}_\theta(C,WS,M)$};
+        {Learn $\mathbf{Q}_\theta(C,WS,M,\mathbf{w})$};
     \draw[arrow,morlred] (episodes) -- (explore);
     \draw[arrow,morlred] (explore) -- (simulate);
     \draw[arrow,morlred] (simulate) -- (reward);
@@ -65,7 +65,7 @@
         {Low-latency hierarchical\\decision during gameplay};
 \end{tikzpicture}%
 }
-\caption{Separação entre aprendizado offline e decisão online. O treinamento
+\caption{Separação entre treinamento pré-implantação e decisão online. O treinamento
 explora consequências de métodos e aprende estimativas vetoriais; em execução,
 uma inferência mascarada seleciona um único método HTN viável sem expandir todas
 as decomposições candidatas.}

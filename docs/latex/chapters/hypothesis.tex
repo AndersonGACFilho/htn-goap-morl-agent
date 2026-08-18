@@ -21,24 +21,35 @@ vetores de preferência alterará suas escolhas de maneira consistente quando a
 importância relativa dos objetivos mudar, inclusive para combinações não
 observadas diretamente no treinamento.
 
-\item[H3 --- validade semântica:] como o HTN filtra os métodos antes da decisão
-MORL, a arquitetura completa não selecionará métodos que violem pré-condições
-ou restrições definidas pelo domínio.
+\item[Invariante arquitetural --- validade semântica:] como o HTN filtra os
+métodos antes da decisão MORL, a arquitetura completa não selecionará métodos
+que violem pré-condições ou restrições definidas pelo domínio.
+Essa é uma propriedade verificável da interface, e não uma hipótese estatística.
 
-\item[H4 --- interpretabilidade:] cada escolha poderá ser explicada pela tarefa
-composta atual, pelos métodos aplicáveis e rejeitados, pelo vetor de
-preferências, pelos valores multiobjetivo estimados e pela utilidade
-escalarizada final.
+\item[H3 --- adequação da frequência e cardinalidade decisórias:] restringir o
+MORL aos métodos HTN aplicáveis pode reduzir a frequência e a cardinalidade
+efetivas das decisões em domínios com abstração adequada, preservando ações
+semanticamente significativas.
 
-\item[H5 --- redução do espaço de decisão:] restringir o MORL aos métodos HTN
-aplicáveis produzirá um espaço de ação menor e semanticamente mais significativo
-que o aprendizado direto de ações primitivas.
-
-\item[H6 --- codificação de preferências:] sob a mesma política MORL e a mesma
-máscara HTN, um codificador relacional de preferências poderá ser comparado de
-forma controlada a perfis fixos e regras explícitas; um codificador profundo só
-será considerado se essa comparação justificar maior complexidade.
 \end{description}
+
+\section{Invariantes e requisitos arquiteturais}
+
+\begin{description}
+\item[Validade semântica:] métodos que violam pré-condições ou restrições do
+domínio são removidos antes da decisão MORL.
+\item[Rastreabilidade e auditabilidade:] cada escolha registra a tarefa
+composta, o estado simbólico relevante, os métodos aplicáveis e rejeitados, o
+vetor de preferências, os valores multiobjetivo estimados, a utilidade e o
+método selecionado.
+\end{description}
+
+\section{Questão experimental secundária}
+
+\textbf{RQ1 --- fontes de preferência:} como diferentes fontes de
+$\mathbf{w}_t$ afetam adaptação, generalização e custo sob a mesma política
+MORL e a mesma máscara HTN? Perfis fixos, diretor de IA, regras explícitas e
+codificadores opcionais serão comparados de forma controlada.
 
 \section{Componentes da arquitetura}
 
@@ -46,13 +57,13 @@ será considerado se essa comparação justificar maior complexidade.
 
 O HTN define tarefas compostas e primitivas, métodos, pré-condições, requisitos
 de recursos e restrições narrativas ou de gameplay.
-Para cada decisão, ele produz $M_{\mathrm{valid}}(s_t,\tau_t)$.
+Para cada decisão, ele produz $\mathcal{M}_{\mathrm{valid}}(C_t,WS_t)$.
 Métodos impossíveis ou proibidos são eliminados antes da consulta ao modelo aprendido.
 
-\subsection{Codificador de preferências}
+\subsection{Fonte de preferências}
 
-O codificador produz $\mathbf{w}_t$ a partir do objetivo, estado, perfil e
-contexto.
+Uma fonte de preferências fornece $\mathbf{w}_t$ a partir do jogo, diretor de
+IA, perfil, regra, objetivo, estado ou contexto.
 Seus componentes podem representar sobrevivência, missão, proteção de aliados,
 conservação de recursos, furtividade e velocidade.
 Perfis fixos e regras como ``aumentar o peso de sobrevivência quando a saúde diminui''
@@ -92,7 +103,7 @@ possuíam os maiores pesos.
 \begin{enumerate}
 \item o HTN identifica a tarefa composta corrente;
 \item o HTN calcula os métodos aplicáveis;
-\item o codificador de preferências fornece $\mathbf{w}_t$;
+\item uma fonte de preferências fornece $\mathbf{w}_t$;
 \item o MORL seleciona um método válido;
 \item o método é decomposto em subtarefas;
 \item se a decomposição falhar, o método é mascarado e o MORL seleciona outra

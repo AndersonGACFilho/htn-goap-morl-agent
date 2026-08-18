@@ -12,13 +12,13 @@ aplicáveis.
 \section{Objetivos específicos}
 
 \begin{enumerate}
-\item definir uma interface formal entre HTN, codificação de preferências e MORL;
+\item definir uma interface formal entre HTN, fonte de preferências e MORL;
 \item modelar restrições obrigatórias por pré-condições e regras de aplicabilidade HTN;
 \item representar preferências comportamentais flexíveis por vetores dinâmicos de pesos;
 \item desenvolver uma política MORL que selecione métodos HTN aplicáveis;
 \item implementar um ambiente controlado de jogo com recompensas vetoriais e eventos reproduzíveis;
 \item comparar a proposta com mecanismos tradicionais de seleção de métodos;
-\item medir desempenho, adaptação, diversidade, validade, interpretabilidade e custo computacional;
+\item medir desempenho, adaptação, diversidade, validade, rastreabilidade, auditabilidade e custo computacional;
 \item avaliar generalização para vetores de preferência e condições ambientais não vistos;
 \item analisar a contribuição de cada componente por estudos de ablação;
 \item comparar perfis fixos, regras explícitas e codificadores relacionais para
@@ -63,11 +63,11 @@ claros entre missão, segurança, aliados, recursos e tempo.
 \section{Implementação HTN}
 
 O HTN definirá a estrutura válida do comportamento.
-O planner será adaptado para calcular $M_{\mathrm{valid}}(s_t,\tau_t)$ e permitir que um
+O planner será adaptado para calcular $\mathcal{M}_{\mathrm{valid}}(C_t,WS_t)$ e permitir que um
 seletor externo escolha a alternativa.
 As restrições obrigatórias permanecerão exclusivamente na camada simbólica.
 
-\section{Codificação de preferências}
+\section{Fontes de preferências}
 
 Perfis fixos e regras explícitas converterão estado e contexto em um vetor
 normalizado e servirão como baselines.
@@ -79,17 +79,19 @@ represente objetivos, condições, efeitos, recursos e ameaças; essa representa
 é inspirada em GOAP, mas não executa um planejador GOAP. Um modelo profundo será
 incluído somente se houver dados, orçamento e evidência experimental de que a
 complexidade adicional é justificável.
-Todos os codificadores serão avaliados sob a mesma interface $E(g_t,s_t,p,c_t)\mapsto\mathbf{w}_t$.
+Todos os mecanismos serão avaliados sob a mesma interface
+$\Phi(\xi_t)\mapsto\mathbf{w}_t$, em que $\Phi$ é uma \textit{PreferenceSource}
+e $\xi_t$ é o contexto disponível.
 
 \section{Treinamento MORL}
 
 A política receberá estado, tarefa composta, máscara de métodos válidos e vetor
 de preferência.
-A ação será a escolha direta de um único método. O treinamento poderá explorar
-decomposições e episódios completos offline para aprender os valores vetoriais
-das alternativas; durante a execução online, a decisão deverá ser uma inferência
-mascarada em cada ponto de seleção HTN, seguida da decomposição apenas do método
-escolhido.
+A ação será a escolha direta de um único método.
+A fase de treinamento pré-implantação poderá explorar decomposições e episódios
+completos para aprender os valores vetoriais das alternativas; durante a execução
+ online, a decisão deverá ser uma inferência mascarada em cada ponto de seleção
+ HTN, seguida da decomposição apenas do método escolhido.
 O treinamento amostrará estados iniciais, configurações de cenário, eventos e
 vetores de preferência.
 O orçamento de treinamento, os hiperparâmetros e as escalas de recompensa serão
@@ -103,8 +105,9 @@ replanejamento.
 Se a decomposição do método escolhido falhar, ele será removido temporariamente
 da máscara e o MORL fará nova seleção entre os métodos restantes. Esse
 \emph{fallback} é uma recuperação excepcional, e não a busca normal sobre todos
-os métodos. Mudanças do mundo durante a execução exigem replanejamento a partir
-do estado observado.
+os métodos.
+Mudanças do mundo durante a execução exigem replanejamento a partir do estado
+observado.
 
 \input{figures/offline_online_morl}
 
@@ -112,13 +115,15 @@ do estado observado.
 
 \begin{description}
 \item[Baseline 1 --- primeiro aplicável:] seleciona o primeiro método válido na ordem do domínio.
-\item[Baseline 2 --- prioridade estática:] utiliza prioridades manuais constantes.
-\item[Baseline 3 --- utilidade com pesos fixos:] combina avaliações manuais por um único vetor fixo.
-\item[Baseline 4 --- utilidade dinâmica baseada em regras:] usa regras explícitas para $\mathbf{w}_t$, mas valores manuais, sem aprendizado.
-\item[Baseline 5 --- MORL com perfis ou regras:] usa a política MORL com um codificador simples de preferências.
+\item[Baseline 2 --- HTN heurístico:] utiliza uma heurística declarada para ordenar métodos aplicáveis.
+\item[Baseline 3 --- HTN--RL escalar abstrato:] aprende $Q(C,M)$ para métodos aplicáveis, seguindo a abstração de estado de Hogg et al.\ \cite{hogg2010}.
+\item[Baseline 4 --- RL escalar contextual:] aprende $Q(C,WS,M)$ com máscara HTN e retorno escalar.
 \end{description}
 
-Esses baselines separam o ganho produzido por preferências dinâmicas do ganho
+O \textbf{método proposto --- HTN + MORL condicionado por preferências} aprende
+$\mathbf{Q}_{\theta}(C,WS,M,\mathbf{w})$ com máscara HTN e é avaliado com
+perfis, diretor de IA, regras ou fontes opcionais equivalentes.
+Esses controles separam o ganho produzido por preferências dinâmicas do ganho
 produzido por valores aprendidos.
 Codificadores relacionais e profundos serão comparados à configuração MORL equivalente,
 sem alterar a máscara HTN.
@@ -132,7 +137,7 @@ Serão avaliadas, quando tecnicamente viáveis, as seguintes configurações:
 \item MORL sem filtragem HTN, em ambiente seguro ou com penalidades para invalidez;
 \item HTN com perfis fixos ou regras, sem MORL;
 \item HTN e MORL sem mudanças dinâmicas de preferência;
-\item arquitetura HTN--codificador de preferências--MORL;
+\item arquitetura HTN--fonte de preferências--MORL;
 \item codificador relacional versus regras explícitas sob a mesma política MORL.
 \end{itemize}
 
@@ -143,6 +148,9 @@ sementes.
 Serão mantidos, tanto quanto possível, os mesmos horizontes, orçamentos
 computacionais e protocolos de ajuste.
 Os logs serão agregados por arquitetura e condição.
+Cada execução registrará semente, versão do código, configuração do ambiente,
+versão do modelo, hiperparâmetros, orçamento de treinamento, tempo de parede
+e hardware.
 A análise incluirá estatística descritiva, intervalos de confiança, testes
 adequados à distribuição dos dados e tamanhos de efeito.
 

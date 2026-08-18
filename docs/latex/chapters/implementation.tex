@@ -9,7 +9,8 @@ A primeira etapa técnica do plano é construir um baseline HTN standalone. Essa
 decisão foi tomada porque o HTN fornece a estrutura de alto nível necessária
 para organizar o comportamento do agente.
 
-Antes de integrar o gerador de preferências e o seletor MORL de métodos, é necessário garantir que o sistema consegue:
+Antes de integrar uma fonte de preferências e o seletor MORL de métodos, é necessário
+garantir que o sistema consegue:
 
 \begin{itemize}
 \item representar estados simbólicos;
@@ -48,8 +49,9 @@ A implementação atual do baseline inclui:
 
 \section{Estado simbólico}
 
-O estado simbólico representa fatos observáveis sobre o mundo. Ele funciona
-como uma estrutura de pares chave-valor, contendo variáveis como:
+O estado simbólico representa fatos observáveis sobre o mundo.
+Ele funciona como uma estrutura de pares chave-valor, contendo variáveis
+como:
 
 \begin{itemize}
 \item \texttt{agent\_x}
@@ -62,13 +64,15 @@ como uma estrutura de pares chave-valor, contendo variáveis como:
 \item \texttt{done}
 \end{itemize}
 
-O estado pode ser copiado. Isso é essencial porque o planner precisa simular
-efeitos sem modificar o ambiente real.
+O estado pode ser copiado.
+Isso é essencial porque o planner precisa simular efeitos sem modificar o
+ambiente real.
 
 \section{Tarefas primitivas}
 
 Uma tarefa primitiva representa uma unidade planejável que pode ser executada
-por uma ação concreta. Formalmente, uma tarefa primitiva pode ser descrita por:
+por uma ação concreta.
+Formalmente, uma tarefa primitiva pode ser descrita por:
 
 \begin{equation}
 t_p = \langle nome, acao, pre, eff \rangle.
@@ -79,8 +83,9 @@ conjunto de efeitos.
 
 \section{Tarefas compostas}
 
-Uma tarefa composta representa uma intenção de alto nível. Ela não é executada
-diretamente. Em vez disso, é decomposta em subtarefas por meio de métodos.
+Uma tarefa composta representa uma intenção de alto nível.
+Ela não é executada diretamente.
+Em vez disso, é decomposta em subtarefas por meio de métodos.
 
 Formalmente:
 
@@ -90,8 +95,8 @@ t_c = \langle nome, metodos \rangle.
 
 \section{Métodos}
 
-Um método representa uma forma possível de decompor uma tarefa composta. Ele
-possui pré-condições e uma lista de subtarefas:
+Um método representa uma forma possível de decompor uma tarefa composta.
+Ele possui pré-condições e uma lista de subtarefas:
 
 \begin{equation}
 m = \langle pre(m), subtasks(m) \rangle.
@@ -112,10 +117,12 @@ simulação das ações anteriores.
 
 \section{Planner recursivo}
 
-O planner implementado usa decomposição recursiva. Ele recebe uma tarefa e um
-estado simbólico. Se a tarefa for primitiva, verifica suas pré-condições e
-aplica seus efeitos simulados. Se a tarefa for composta, busca métodos
-aplicáveis e tenta decompor suas subtarefas.
+O planner implementado usa decomposição recursiva.
+Ele recebe uma tarefa e um estado simbólico.
+Se a tarefa for primitiva, verifica suas pré-condições e aplica seus
+efeitos simulados.
+Se a tarefa for composta, busca métodos aplicáveis e tenta decompor
+suas subtarefas.
 
 O processo geral é:
 
@@ -131,10 +138,11 @@ O processo geral é:
 
 \section{Backtracking}
 
-O planner possui backtracking em nível de método. Se uma decomposição não
-produz plano válido, outra decomposição pode ser tentada. Essa capacidade é
-importante porque permite que uma tarefa composta tenha várias soluções
-possíveis dependendo do estado.
+O planner possui backtracking em nível de método.
+Se uma decomposição não produz plano válido, outra decomposição pode
+ser tentada.
+Essa capacidade é importante porque permite que uma tarefa composta
+tenha várias soluções possíveis dependendo do estado.
 
 % =============================================================================
 \chapter{Ambiente Experimental GridWorld}
@@ -143,9 +151,9 @@ possíveis dependendo do estado.
 \section{Motivação}
 
 O GridWorld foi escolhido como ambiente inicial por ser simples, discreto,
-controlável e adequado para validar planejamento simbólico. Nesta etapa, o
-objetivo não é treinar uma política de RL, mas validar a arquitetura do
-baseline HTN.
+controlável e adequado para validar planejamento simbólico.
+Nesta etapa, o objetivo não é treinar uma política de RL, mas validar a
+arquitetura do baseline HTN.
 
 \section{Modelo formal do ambiente}
 
@@ -209,14 +217,16 @@ O ambiente possui seis ações discretas:
 \item abrir porta.
 \end{itemize}
 
-Movimentos inválidos não alteram a posição do agente. A ação de pegar chave
-só tem sucesso quando o agente está na posição da chave. A ação de abrir
-porta só tem sucesso quando o agente está na porta e possui a chave.
+Movimentos inválidos não alteram a posição do agente.
+A ação de pegar chave só tem sucesso quando o agente está na posição
+da chave.
+A ação de abrir porta só tem sucesso quando o agente está na porta e
+possui a chave.
 
 \section{Objetivo do ambiente}
 
-O objetivo é alcançar a posição final com a porta aberta. Portanto, o episódio
-termina quando:
+O objetivo é alcançar a posição final com a porta aberta.
+Portanto, o episódio termina quando:
 
 \begin{equation}
 p_a = p_g
@@ -250,9 +260,10 @@ futuro, cenários randomizados com \textit{seed} para reprodutibilidade.
 
 \section{Tarefa raiz}
 
-A tarefa raiz do domínio é escapar do grid. No código, essa tarefa é
-representada por \texttt{escape\_grid}. Conceitualmente, ela significa
-atingir o objetivo final após satisfazer as condições necessárias.
+A tarefa raiz do domínio é escapar do grid.
+No código, essa tarefa é representada por \texttt{escape\_grid}.
+Conceitualmente, ela significa atingir o objetivo final após satisfazer
+as condições necessárias.
 
 \section{Tarefas primitivas}
 
@@ -278,8 +289,8 @@ As principais tarefas compostas são:
 
 \section{Métodos para garantir a chave}
 
-A tarefa \texttt{ensure\_has\_key} pode ser resolvida de duas formas. Se o
-agente já possui a chave, nenhuma subtarefa é necessária:
+A tarefa \texttt{ensure\_has\_key} pode ser resolvida de duas formas.
+Se o agente já possui a chave, nenhuma subtarefa é necessária:
 
 \begin{equation}
 hasKey = true
@@ -298,8 +309,8 @@ subtasks =
 
 \section{Métodos para garantir a porta aberta}
 
-A tarefa \texttt{ensure\_door\_open} também possui dois casos. Se a porta já
-está aberta, nenhuma subtarefa é necessária:
+A tarefa \texttt{ensure\_door\_open} também possui dois casos.
+Se a porta já está aberta, nenhuma subtarefa é necessária:
 
 \begin{equation}
 doorOpen = true
@@ -356,8 +367,9 @@ goToGoal
 \end{equation}
 
 Esse plano pode ser reduzido automaticamente quando certas condições já estão
-satisfeitas. Por exemplo, se a porta já estiver aberta, o plano pode conter
-apenas a navegação até o objetivo.
+satisfeitas.
+Por exemplo, se a porta já estiver aberta, o plano pode conter apenas a navegação
+até o objetivo.
 
 % =============================================================================
 \chapter{Execução por Agente}
@@ -366,7 +378,8 @@ apenas a navegação até o objetivo.
 \section{Separação entre planejamento e execução}
 
 Uma decisão arquitetural importante foi separar o planner do agente executor.
-O planner constrói planos. O agente executa planos.
+O planner constrói planos.
+O agente executa planos.
 
 O planner é responsável por:
 
@@ -391,9 +404,9 @@ O agente é responsável por:
 
 \section{Execução por ticks}
 
-A execução ocorre em ciclos discretos chamados ticks. Em cada tick, o agente
-executa uma etapa da tarefa atual. Isso é necessário porque algumas ações,
-como navegação, podem durar vários ticks.
+A execução ocorre em ciclos discretos chamados ticks.
+Em cada tick, o agente executa uma etapa da tarefa atual.
+Isso é necessário porque algumas ações, como navegação, podem durar vários ticks.
 
 \section{Status das ações}
 
@@ -406,8 +419,9 @@ Cada ação retorna um status:
 \end{itemize}
 
 A navegação até uma posição alvo normalmente retorna \texttt{RUNNING} até o
-agente alcançar o destino. Ao chegar, retorna \texttt{SUCCESS}. Se não houver
-caminho, retorna \texttt{FAILURE}.
+agente alcançar o destino.
+Ao chegar, retorna \texttt{SUCCESS}.
+Se não houver caminho, retorna \texttt{FAILURE}.
 
 \section{Resultado de um tick}
 
@@ -429,8 +443,8 @@ como:
 
 \section{Motivação dos sensores}
 
-O planner não deve acessar diretamente o ambiente concreto. Em vez disso, ele
-deve operar sobre um estado simbólico atualizado por sensores.
+O planner não deve acessar diretamente o ambiente concreto.
+Em vez disso, ele deve operar sobre um estado simbólico atualizado por sensores.
 
 Um sensor pode ser representado como uma função:
 
@@ -461,8 +475,8 @@ O sensor do GridWorld atualiza fatos simbólicos como:
 \section{Delegate de mudança de estado}
 
 Depois que os sensores atualizam o estado, um mecanismo de notificação informa
-ao agente que o estado simbólico mudou. O agente então atualiza sua cópia de
-estado e encaminha a mudança ao planner.
+ao agente que o estado simbólico mudou.
+O agente então atualiza sua cópia de estado e encaminha a mudança ao planner.
 
 O fluxo é:
 
@@ -481,8 +495,8 @@ planner.
 \section{Validação preguiçosa}
 
 O agente não descarta o plano imediatamente após qualquer mudança de estado.
-Em vez disso, valida se o plano restante ainda pode ser executado. Essa
-estratégia evita replanejamento desnecessário.
+Em vez disso, valida se o plano restante ainda pode ser executado.
+Essa estratégia evita replanejamento desnecessário.
 
 Dado um plano restante:
 
@@ -491,9 +505,9 @@ Dado um plano restante:
 \langle a_i,a_{i+1},\dots,a_n \rangle,
 \end{equation}
 
-o agente simula as tarefas restantes a partir do estado atual. Se todas as
-pré-condições forem satisfeitas, o plano continua válido. Caso contrário, o
-agente replana.
+o agente simula as tarefas restantes a partir do estado atual.
+Se todas as pré-condições forem satisfeitas, o plano continua válido.
+Caso contrário, o agente replana.
 
 \section{Condição de replanejamento}
 
@@ -517,8 +531,8 @@ o GridWorld inicial seja determinístico.
 \section{Separação entre intenção e movimento}
 
 O HTN define intenções simbólicas, como ir até a chave, ir até a porta ou ir
-até o objetivo. O pathfinder transforma essas intenções em movimentos
-concretos.
+até o objetivo.
+O pathfinder transforma essas intenções em movimentos concretos.
 
 Essa separação evita acoplamento entre o domínio HTN e o algoritmo de
 navegação.
@@ -531,8 +545,8 @@ O GridWorld pode ser modelado como um grafo:
 G_{grid} = \langle V,E \rangle.
 \end{equation}
 
-O conjunto $V$ contém células livres do grid. O conjunto $E$ contém conexões
-entre células ortogonalmente adjacentes.
+O conjunto $V$ contém células livres do grid.
+O conjunto $E$ contém conexões entre células ortogonalmente adjacentes.
 
 Uma célula é válida se está dentro dos limites do grid e não pertence ao
 conjunto de obstáculos.
@@ -561,19 +575,25 @@ atual do ambiente.
 \section{Papel do baseline atual}
 
 O GridWorld existente permanece útil como prova de conceito do mecanismo HTN,
-da execução por ticks, dos sensores, da navegação e do replanejamento. Ele não
-constitui, isoladamente, a avaliação final da hipótese. Sua função é fornecer
-uma base testável sobre a qual a interface de seleção de métodos possa ser
-introduzida sem misturar falhas do planner com falhas de aprendizado.
+da execução por ticks, dos sensores, da navegação e do replanejamento.
+Ele não constitui, isoladamente, a avaliação final da hipótese.
+Sua função é fornecer uma base testável sobre a qual a interface de seleção de
+métodos possa ser introduzida sem misturar falhas do planner com falhas de
+aprendizado.
+Ele ainda não oferece alternativas genuinamente conflitantes, recompensa
+vetorial, nem um protocolo de preferência-condicionada; portanto, não é por si
+só um benchmark MORL adequado.
 
 \section{Alteração necessária no planner}
 
 O planner atual percorre métodos aplicáveis segundo uma ordem definida no
-domínio e usa backtracking quando uma decomposição falha. Para a arquitetura
-proposta, a etapa de seleção deverá ser desacoplada da enumeração fixa. No
-caminho online normal, o seletor MORL recebe a máscara dos métodos aplicáveis,
-faz uma inferência e escolhe diretamente um único método $m^*$; somente $m^*$ é
-decomposto. Dada uma tarefa composta, o planner deverá:
+domínio e usa backtracking quando uma decomposição falha.
+Para a arquitetura proposta, a etapa de seleção deverá ser desacoplada da
+enumeração fixa.
+No caminho online normal, o seletor MORL recebe a máscara dos métodos aplicáveis,
+faz uma inferência e escolhe diretamente um único método $M_t^*$; somente $M_t^*$ é
+decomposto.
+Dada uma tarefa composta, o planner deverá:
 
 \begin{enumerate}
 \item identificar todos os métodos cujas pré-condições são satisfeitas;
@@ -584,15 +604,19 @@ decomposto. Dada uma tarefa composta, o planner deverá:
 \item registrar métodos rejeitados, valores estimados e método escolhido.
 \end{enumerate}
 
-É importante distinguir inaplicabilidade de falha posterior. A máscara HTN
-remove métodos que já violam restrições no estado corrente e esses métodos nunca
-chegam ao MORL. Se uma decomposição inicialmente aplicável não produz um plano
-executável após a expansão de suas subtarefas, o método selecionado é mascarado
-temporariamente e o MORL escolhe novamente entre as alternativas restantes.
-Essa recuperação não é uma busca DFS sobre uma lista ordenada: é excepcional e
-normalmente o ciclo seleciona e decompõe apenas um método. Quando o mundo muda
-durante a execução, o agente deve replanejar a partir do estado observado, e não
-fazer backtracking sobre um estado simbólico obsoleto.
+É importante distinguir inaplicabilidade de falha posterior.
+A máscara HTN remove métodos que já violam restrições no estado corrente e esses
+ métodos nunca chegam ao MORL. Se uma decomposição inicialmente aplicável não
+ produz um plano executável após a expansão de suas subtarefas, o método
+ selecionado é mascarado temporariamente e o MORL escolhe novamente entre as
+ alternativas restantes.
+ Essa recuperação não é uma busca DFS sobre uma lista ordenada: é excepcional e
+normalmente o ciclo seleciona e decompõe apenas um método.
+Quando o mundo muda durante a execução, o agente deve replanejar a partir do
+estado observado, e não fazer backtracking sobre um estado simbólico obsoleto.
+A separação entre planejamento inicial e replanejamento durante execução é
+consistente com trabalhos recentes de replanning HTN sob mudanças de utilidade
+e risco \cite{nabakowski2025}.
 
 \input{figures/htn_morl_fallback}
 
@@ -613,10 +637,11 @@ A interface mínima entre os componentes deverá conter:
 \section{Ambiente experimental alvo}
 
 A próxima versão do ambiente deverá representar um cenário tático ou de
-sobrevivência controlado. Exemplos de tarefas compostas incluem defender uma
-posição, proteger um aliado, obter acesso a uma área, neutralizar uma ameaça ou
-recuar sob recursos limitados. Eventos estocásticos e mudanças de prioridade
-devem ser configuráveis e reproduzíveis por sementes.
+sobrevivência controlado.
+Exemplos de tarefas compostas incluem defender uma posição, proteger um aliado,
+obter acesso a uma área, neutralizar uma ameaça ou recuar sob recursos limitados.
+Eventos estocásticos e mudanças de prioridade devem ser configuráveis e
+reproduzíveis por sementes.
 
 Uma evolução inspirada em ambientes multiobjetivo como
 \textit{Resource Gathering} pode ser utilizada para validar recompensas
@@ -633,5 +658,6 @@ de escalabilidade e não fazem parte do escopo mínimo do mestrado.
 Cada decisão deverá registrar estado, tarefa composta, métodos aplicáveis,
 métodos rejeitados e respectivas pré-condições, vetor de preferências, vetor de
 valor estimado por método, utilidade escalarizada, método escolhido, sequência
-de subtarefas, recompensa vetorial, duração e resultado. Esses registros
-sustentarão tanto a análise quantitativa quanto as explicações qualitativas.
+de subtarefas, recompensa vetorial, duração e resultado.
+Esses registros sustentarão tanto a análise quantitativa quanto as explicações
+qualitativas.

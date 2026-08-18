@@ -58,6 +58,21 @@ comparáveis, critérios explícitos de ajuste e relato de tamanhos de efeito.
 
 Uma melhoria atribuída ao MORL pode decorrer apenas da forma de gerar
 $\mathbf{w}_t$.
-s comparações manterão o domínio HTN, a máscara de métodos, as recompensas,
-as sementes e, quando possível, a política fixos ao variar o codificador de
+As comparações manterão o domínio HTN, a máscara de métodos, as recompensas,
+as sementes e, quando possível, a política fixos ao variar a fonte de
 preferências.
+
+\section{Benefício de desempenho não demonstrado}
+
+Seleção aprendida pode não superar uma heurística HTN simples no domínio
+controlado.
+A mitigação é comparar baselines de dificuldade crescente e relatar também
+casos neutros ou desfavoráveis, com intervalos de confiança e custo de
+treinamento.
+
+\section{Métrica multiobjetivo inadequada}
+
+Hipervolume, cobertura, SER e ESR dependem do conjunto avaliado, do ponto de
+referência e da função de utilidade.
+O protocolo fixará essas escolhas antes da avaliação e usará métricas
+condicionadas por preferência somente quando suas hipóteses forem satisfeitas.

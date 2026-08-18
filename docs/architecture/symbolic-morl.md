@@ -17,7 +17,7 @@ flowchart LR
     D[HTN domain] --> F
     F --> M{Feasible methods}
     M --> Q[MORL policy<br/>selects one method]
-    W[Preference vector w] --> Q
+    W[Preference source / vector w] --> Q
     Q --> P[Planner decomposes<br/>only the selected method]
     P --> A[PrimitiveTask plan]
     A --> E[Environment]
@@ -35,30 +35,30 @@ flowchart LR
 | MORL               | Selects one remaining method according to multiple objectives and preferences.   |
 | Executor           | Executes primitive tasks and observes results in the environment.                |
 | Training           | Learns method values from vector rewards.                                        |
-| Preference encoder | Supplies `𝐰` from context; it is an experimental, replaceable module.            |
+| Preference source  | Supplies `𝐰` from a profile, game director, rule, or optional learned encoder.   |
 
 ## MORL at the planning-time decision point
 
 In Multi-Objective Reinforcement Learning, the reward is no longer a scalar and becomes a vector:
 
 $$
-\mathbf{r} = [r_1, r_2, \ldots, r_k]
+\mathbf{r} = [r_1, r_2, \ldots, r_d]\in\mathbb{R}^d
 $$
 
-Each component represents an objective, such as progress toward the goal, resource consumption, safety, or time. As these objectives may conflict, a policy can represent different trade-offs along the Pareto frontier.
+Each component represents an objective, such as progress toward the goal, resource consumption, safety, or time. Under linear scalarization, a preference-conditioned policy can represent different supported trade-offs across the preference simplex. The corresponding solution concept is related to a convex coverage set; arbitrary non-convex Pareto-optimal trade-offs may require non-linear utilities or another MORL solution concept.
 
 A preference vector is written as:
 
 $$
-\mathbf{w} = [w_1, w_2, \ldots, w_k]
+\mathbf{w} = [w_1, w_2, \ldots, w_d]\in\mathbb{R}^d
 $$
 
 It conveys each objective's relative importance for method selection. Changing $\mathbf{w}$ can change the choice for the same state and the same set of feasible methods. The MORL action is therefore a valid HTN `Method`, not a motor action or primitive task.
 
 !!! info "Research focus"
-    The central contribution is MORL-guided HTN method selection at planning time. Weight generation is needed to condition MORL, but it is not a standalone research focus: fixed profiles, rules, relational graphs, and deep-learning models are compared as interchangeable preference encoders.
+    The central contribution is MORL-guided HTN method selection at planning time. A preference vector is supplied by the game, AI director, fixed profile, contextual rule, or an optional learned encoder. Preference generation is not a standalone research focus.
 
-See [preference-weight generation](preference-weight-generation.md) for the design and evaluation of these encoders, and [RL with Options](../annotations/reinforcement-learning/rl-with-options.md) for the temporal-abstraction connection.
+See [preference sources and optional weight generation](preference-weight-generation.md) for the design and evaluation of preference sources and optional encoders, and [RL with Options](../annotations/reinforcement-learning/rl-with-options.md) for the temporal-abstraction connection.
 
 ## Proposed planner integration
 
@@ -93,8 +93,8 @@ When the state and preference vector have not changed, the implementation may re
 1. **HTN baseline — available:** instrument method selection, failures, replanning, and environment outcomes.
 2. **Multi-objective environment — future:** define the components of `r` and how each episode records returns.
 3. **HTN–MORL integration — future:** introduce a preference-conditioned, single-choice selector for feasible methods, plus MORL-guided method fallback after decomposition failure.
-4. **Training — future:** learn offline a policy/value that estimates the trade-off for each feasible method; online use is one masked inference at a decision point.
-5. **Preference encoders — experimental track:** compare fixed profiles, rules, relational graphs, and deep learning under the same MORL interface.
+4. **Training — future:** learn a policy/value during a pre-deployment training phase that estimates the trade-off for each feasible method; online use is one masked inference at a decision point.
+5. **Preference sources — experimental track:** compare game/director inputs, fixed profiles, rules, relational graphs, and deep learning under the same MORL interface.
 6. **Experimental comparison — future:** measure ordered baseline versus MORL direct selection, including plan validity, fallback rate, replanning, vector return, and normal-path decision cost.
 
 ## Implications for GridWorld

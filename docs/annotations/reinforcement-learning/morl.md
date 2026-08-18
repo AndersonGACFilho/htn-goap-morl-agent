@@ -27,7 +27,7 @@ $$
 u_{\mathbf{w}}(\mathbf{G}_t) = \mathbf{w}^{\mathsf{T}}\mathbf{G}_t
 $$
 
-In this equation, $\mathbf{G}_t$ is the vector return from time $t$, $\mathbf{w}$ is a non-negative preference vector, $\mathbf{w}^{\mathsf{T}}$ is its transpose, and $u_{\mathbf{w}}$ maps the vector return to a scalar utility. For normalized linear preferences, $\sum_{j=1}^{k}w_j = 1$, where $k$ is the number of objectives.
+In this equation, $\mathbf{G}_t$ is the vector return from time $t$, $\mathbf{w}$ is a non-negative preference vector, $\mathbf{w}^{\mathsf{T}}$ is its transpose, and $u_{\mathbf{w}}$ maps the vector return to a scalar utility. For normalized linear preferences, $\sum_{j=1}^{d}w_j = 1$, where $d$ is the number of objectives.
 
 This is useful for controlled experiments, but it is an assumption rather than a universal law. Some preferences are non-linear, constrained, or lexicographic. A safety constraint, for example, should normally remain a symbolic hard constraint instead of becoming a weight that can be traded away.
 
@@ -36,27 +36,28 @@ This is useful for controlled experiments, but it is an assumption rather than a
 The proposed architecture applies MORL at one precise point: a `CompoundTask` has more than one applicable `Method` during planning. The HTN planner first computes:
 
 $$
-\mathcal{M}_{\mathrm{valid}}(s_t, \tau_t) = \left\{m \in \mathcal{M}(\tau_t) \mid \operatorname{preconditions}(m, s_t)\right\}
+\mathcal{M}_{\mathrm{valid}}(C_t, WS_t) = \left\{M \in \mathcal{M}(C_t) \mid \operatorname{preconditions}(M, WS_t)\right\}
 $$
 
-Here, $s_t$ is the current symbolic state, $\tau_t$ is the current compound task, $\mathcal{M}(\tau_t)$ is the set of methods declared for that task, $m$ is one candidate method, and $\mathcal{M}_{\mathrm{valid}}$ is the subset whose preconditions hold in $s_t$.
+Here, $WS_t$ is the current symbolic state, $C_t$ is the current compound task, $\mathcal{M}(C_t)$ is the set of methods declared for that task, $M$ is one candidate method, and $\mathcal{M}_{\mathrm{valid}}$ is the subset whose preconditions hold in $WS_t$.
 
 Only then does MORL make one direct selection. A conceptual decision rule is:
 
 $$
-m^* = \underset{m \in \mathcal{M}_{\mathrm{valid}}(s_t, \tau_t)}{\operatorname{arg\,max}}\; u_{\mathbf{w}}\!\left(\mathbf{Q}(s_t, \tau_t, m)\right)
+M_t^* = \underset{M \in \mathcal{M}_{\mathrm{valid}}(C_t, WS_t)}{\operatorname{arg\,max}}\; u_{\mathbf{w}_t}\!\left(\mathbf{Q}_{\theta}(C_t, WS_t, M,\mathbf{w}_t)\right)
 $$
 
-In this equation, $m^*$ is the selected method, $\mathbf{Q}(s_t, \tau_t, m)$ is the estimated vector value of choosing $m$ in state $s_t$ for task $\tau_t$, and $\operatorname{arg\,max}$ returns the candidate with the highest utility under $\mathbf{w}$.
+In this equation, $M_t^*$ is the selected method, $\mathbf{Q}_{\theta}(C_t,WS_t,M,\mathbf{w}_t)$ is the estimated vector value of choosing $M$ in symbolic state $WS_t$ for task $C_t$ under the current preference, and $\operatorname{arg\,max}$ returns the candidate with the highest utility under $\mathbf{w}_t$.
 
-`Q` is a vector-valued estimate of the consequence of choosing method `m`, not an authorization to execute an arbitrary primitive action. The planner's feasible-method mask is authoritative: MORL cannot select a method excluded by symbolic preconditions. The online path does not expand or compare partial plans for every candidate: one masked inference selects $m^*$, and HTN decomposes only $m^*$.
+`Q` is a vector-valued estimate of the consequence of choosing method `M`, not an authorization to execute an arbitrary primitive action. The planner's feasible-method mask is authoritative: MORL cannot select a method excluded by symbolic preconditions. The online path does not expand or compare partial plans for every candidate: one masked inference selects $M_t^*$, and HTN decomposes only $M_t^*$.
 
 ```mermaid
 flowchart LR
     S[Symbolic state and context] --> F[HTN computes feasible methods]
     T[Current CompoundTask] --> F
     F --> M[Validity mask]
-    S --> W[Preference encoder]
+    G[Game / AI director / profile / rule] --> P[Preference vector w]
+    S --> W[Optional preference encoder]
     W --> P[Preference vector w]
     M --> Q[MORL method-value estimates]
     P --> Q

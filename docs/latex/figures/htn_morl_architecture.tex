@@ -19,8 +19,8 @@
     \node[game, below left=10mm and 19mm of director] (task)
         {Main Task\\$T_{\mathrm{main}} = C_0$};
     \node[game, below right=10mm and 19mm of director] (weight)
-        {Preference Vector\\$\mathbf{w}_t=[w_1,\ldots,w_k]$};
-    \node[runtime, below=18mm of director] (state)
+        {Preference Vector\\$\mathbf{w}_t=[w_1,\ldots,w_d]$};
+    \node[runtime, below=24mm of director] (state)
         {World State\\$WS_t$};
     \node[runtime, left=45mm of state] (sensors)
         {Environment / Sensors};
@@ -42,7 +42,7 @@
     \draw[arrow, htnblue] (filter) -- (mask);
 
     \node[morl, below=10mm of mask] (morl)
-        {Preference-Conditioned MORL\\$\mathbf{Q}_{\theta}(C_t,WS_t,M_i)$};
+        {Preference-Conditioned MORL\\$\mathbf{Q}_{\theta}(C_t,WS_t,M_i,\mathbf{w}_t)$};
     \draw[arrow, morlred] (mask) -- (morl);
     \draw[arrow, morlred, dashed] (weight.east)
         to[out=0,in=15] node[pos=.58,right] {preferences} (morl.east);

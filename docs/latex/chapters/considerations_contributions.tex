@@ -3,11 +3,11 @@
 % =============================================================================
 
 \begin{itemize}
-\item uma arquitetura formal integrando HTN, codificação dinâmica de preferências e MORL;
+\item uma arquitetura formal integrando HTN, fontes dinâmicas de preferências e MORL;
 \item um método para empregar MORL especificamente na seleção de métodos de decomposição HTN;
 \item uma separação explícita entre restrições simbólicas obrigatórias e preferências comportamentais flexíveis;
-\item uma política condicionada capaz de variar o comportamento sem retreinamento para cada vetor de pesos;
-\item um modelo explicável de decisão hierárquica para NPCs adaptativos;
+\item uma política condicionada a ser avaliada quanto à variação de comportamento sem retreinamento por vetor de pesos;
+\item um mecanismo rastreável de decisão hierárquica para NPCs adaptativos;
 \item uma comparação experimental entre seleção aprendida e heurísticas tradicionais de HTN;
 \item uma comparação controlada entre perfis, regras, grafos relacionais e,
 quando viável, codificadores profundos de preferências;
@@ -27,11 +27,11 @@ Ele atua no ponto em que um planejador HTN possui mais de um método semanticame
 aplicável e precisa escolher qual decomposição melhor atende às prioridades correntes.
 
 A arquitetura pode ser resumida da seguinte forma: o HTN determina o que é
-válido; o codificador de preferências fornece $\mathbf{w}_t$ para expressar o
+válido; uma fonte de preferências fornece $\mathbf{w}_t$ para expressar o
 compromisso corrente; e o MORL seleciona o método válido mais apropriado.
-O codificador é um módulo auxiliar e comparável: perfis e regras são
-baselines, um grafo relacional inspirado em GOAP é a alternativa estrutural
-e um modelo profundo é condicional.
+A geração de preferências é um componente auxiliar e comparável: perfis e
+regras são baselines; um grafo relacional inspirado em GOAP e um modelo profundo
+são implementações opcionais da fonte, condicionadas ao orçamento e aos resultados.
 A execução das tarefas primitivas permanece sob responsabilidade de sistemas
 convencionais.
 

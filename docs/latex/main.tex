@@ -39,6 +39,7 @@ parsep=0pt
 
 \author{Filho}{Anderson G. A. C.}
 \advisor[Prof.~Dr.]{Nunes Alegre}{Lucas}
+\coadvisor[Prof.~Dr.]{Rocha Tavares}{Anderson}
 \date{agosto}{2026}
 
 \keyword{Planejamento hierárquico}
@@ -73,27 +74,28 @@ motoras ou primitivas.
 Sua ação corresponde à escolha, em tempo de execução, de um método HTN entre as
 alternativas cuja aplicabilidade já foi validada simbolicamente.
 
-A arquitetura separa três responsabilidades.
+A arquitetura separa quatro responsabilidades.
 O HTN define tarefas, métodos, pré-condições, restrições e regras de
 decomposição.
-Um codificador de preferências fornece o vetor $\mathbf{w}_t$ a partir de estado,
-objetivo e contexto; ele é um módulo experimental substituível, não a
-contribuição central.
+Uma fonte de preferências fornece o vetor $\mathbf{w}_t$, diretamente pelo jogo,
+diretor de IA, perfil ou regra, ou opcionalmente a partir de estado, objetivo e
+contexto por um codificador aprendido; ela é um módulo experimental
+substituível, não a contribuição central.
 A política MORL estima o valor vetorial dos métodos aplicáveis e seleciona o
 melhor compromisso sob $\mathbf{w}_t$.
 Perfis fixos e regras explícitas são baselines; um grafo relacional inspirado
 nas relações de objetivos, condições e efeitos do GOAP, ou um modelo de
 aprendizado profundo, são alternativas para o codificador.
-As tarefas primitivas permanecem sob controladores tradicionais.
+As tarefas primitivas permanecem sob uma camada de execução convencional.
 
 A hipótese central é que essa integração pode superar prioridades HTN estáticas
 e heurísticas de utilidade fixas em cenários dinâmicos, mantendo validade
-semântica, interpretabilidade, controle de designer e desempenho compatível com
+semântica, rastreabilidade, auditabilidade, controle de designer e desempenho compatível com
 execução em tempo real.
 A avaliação será conduzida em um ambiente controlado de jogo, com recompensas
 vetoriais, mudanças contextuais, preferências dinâmicas, baselines simbólicos,
 estudos de ablação e métricas de desempenho da tarefa, qualidade multiobjetivo,
-adaptação, diversidade comportamental, validade, interpretabilidade e custo
+adaptação, diversidade comportamental, validade, rastreabilidade, auditabilidade e custo
 computacional.
 \end{abstract}
 
@@ -108,10 +110,11 @@ motor or primitive actions.
 Its action is the online selection of an HTN method among alternatives whose
 applicability has already been validated by the symbolic model.
 
-The architecture separates three responsibilities.
+The architecture separates four responsibilities.
 HTN defines tasks, methods, preconditions, constraints, and decomposition rules.
-A preference encoder supplies $\mathbf{w}_t$ from state, goal, and context; it is
-a replaceable experimental module rather than the central contribution.
+A preference source supplies $\mathbf{w}_t$ directly from the game, AI director,
+profile, or rule, or optionally from state, goal, and context through a learned
+encoder; it is a replaceable experimental module rather than the central contribution.
 A preference-conditioned MORL policy estimates the vector value of applicable
 methods and selects the best trade-off under $\mathbf{w}_t$.
 Fixed profiles and explicit rules are baselines, while a relational graph
@@ -121,12 +124,12 @@ Primitive tasks  remain under traditional game systems.
 
 The central hypothesis is that this integration can outperform static HTN
 priorities and fixed utility heuristics in dynamic scenarios while preserving
-semantic validity, interpretability, designer control, and real-time decision
+semantic validity, decision traceability, auditability, designer control, and real-time decision
 performance.
-The evaluation will use a controlled game-like environment with  vector rewards,
+The evaluation will use a controlled game-like environment with vector rewards,
 contextual changes, dynamic preferences, symbolic baselines, ablation studies,
 and metrics covering task performance, multi-objective quality, adaptability,
-behavioural diversity, validity, interpretability, and computational cost.
+behavioural diversity, validity, decision traceability, auditability, and computational cost.
 \end{translatedabstract}
 
 \tableofcontents

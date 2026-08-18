@@ -365,13 +365,13 @@ compostas em subtarefas até produzir tarefas primitivas executáveis
 \cite{erol1994,georgievski2014,nau2003shop2}.
 Um domínio HTN define tarefas, métodos de decomposição, pré-condições
 e restrições.
-Para uma tarefa composta $\tau_t$ e estado $s_t$, o conjunto de métodos
+Para uma tarefa composta $C_t$ e estado simbólico $WS_t$, o conjunto de métodos
 aplicáveis é:
 
 \begin{equation}
-M_{\mathrm{valid}}(s_t,\tau_t)
+\mathcal{M}_{\mathrm{valid}}(C_t,WS_t)
 =
-\left\{m \in M(\tau_t) \mid \mathrm{pre}(m,s_t)=\mathrm{true}\right\}.
+\left\{M \in \mathcal{M}(C_t) \mid \mathrm{pre}(M,WS_t)=\mathrm{true}\right\}.
 \end{equation}
 
 Na arquitetura proposta, o HTN não escolhe imediatamente o primeiro método
@@ -381,36 +381,59 @@ aprendido.
 Assim, o modelo simbólico mantém a responsabilidade pela validade, enquanto
 a preferência entre alternativas válidas pode ser adaptada por experiência.
 
-\section{Codificação de preferências}
+\section{Aprendizado de valores para métodos HTN}
+
+Hogg, Kuter e Muñoz-Avila modelam a seleção de um método aplicável para
+decompor uma tarefa HTN como uma decisão de aprendizado por reforço
+\cite{hogg2010}.
+Sua função escalar $Q(t,m)$ estima o retorno esperado de iniciar a
+decomposição da tarefa $t$ pelo método $m$.
+O estado participa indiretamente, pois apenas métodos aplicáveis no estado
+corrente podem ser escolhidos.
+Os autores adotam essa abstração por ser impraticável armazenar valores
+específicos para todos os estados, mas ela não representa explicitamente a
+dependência do valor do método em relação ao estado quando os mesmos métodos
+permanecem aplicáveis em contextos distintos.
+
+Bahrami propõe um antecedente mais próximo da interface de implementação:
+uma camada de Deep Q-Learning seleciona métodos HTN aplicáveis a partir de
+uma máscara de validade, mantendo o retorno escalar e o planner simbólico
+\cite{bahrami2025}.
+Esses trabalhos motivam baselines escalares, mas não tratam a seleção
+condicionada simultaneamente pelo estado, por preferências e por um retorno
+vetorial.
+
+\section{Fontes de preferências}
 
 GOAP representa objetivos, ações, pré-condições, efeitos e custos para buscar
 sequências que transformem o estado corrente em um estado desejado
 \cite{orkin2005,orkin2006}.
 Neste trabalho, GOAP não será introduzido como um segundo planejador entre
 HTN e MORL. Suas relações entre objetivos, condições, efeitos e recursos
-podem, contudo, inspirar a representação de contexto usada por um codificador
-de preferências.
+podem, contudo, inspirar uma representação de contexto usada por uma fonte de
+preferências.
 
-O codificador transforma objetivo, estado, perfil e contexto em um vetor
-normalizado de preferências:
+Uma fonte de preferências produz ou fornece diretamente um vetor normalizado de
+preferências a partir do contexto disponível $\xi_t$:
 
 \begin{equation}
-\mathbf{w}_t = E(g_t,s_t,p,c_t),
+\mathbf{w}_t = \Phi(\xi_t),
 \qquad
 w_{i,t}\geq 0,
 \qquad
 \sum_i w_{i,t}=1.
 \end{equation}
 
-Nessa expressão, $E$ é o codificador, $g_t$ é o objetivo corrente, $s_t$ é o
-estado, $p$ representa um perfil comportamental, $c_t$ é o contexto e $w_{i,t}$
-é o peso do objetivo $i$ no instante $t$.
+Nessa expressão, $\Phi$ é uma \textit{PreferenceSource}, $\xi_t$ representa o
+contexto disponível e $w_{i,t}$ é o peso do objetivo $i$ no instante $t$. Para
+fontes diretas, $\Phi$ pode ser uma tabela, perfil ou regra; para fontes
+aprendidas, pode ser um codificador parametrizado.
 Perfis fixos e regras explícitas constituem baselines reproduzíveis.
 A principal alternativa estrutural é um grafo relacional inspirado em GOAP,
 sem executar sua busca de planejamento; um modelo de aprendizado profundo será
 avaliado apenas se os dados, o orçamento e os resultados dos baselines justificarem
 essa extensão.
-Assim, a comparação entre codificadores é uma parte auxiliar da pesquisa, enquanto
+Assim, a comparação entre fontes de preferência é uma parte auxiliar da pesquisa, enquanto
 a contribuição central permanece a seleção MORL de métodos HTN válidos.
 
 \section{Aprendizado por reforço multiobjetivo}
@@ -433,25 +456,38 @@ referências para essa formulação \cite{abels2019,barreto2017successor,alegre2
 Para cada método válido, a política estima um vetor de valor:
 
 \begin{equation}
-\mathbf{Q}(s_t,\tau_t,m,\mathbf{w}_t)
+\mathbf{Q}_{\theta}(C_t,WS_t,M,\mathbf{w}_t)
 =
-\left[Q_1,Q_2,\dots,Q_n\right].
+\left[Q_1,Q_2,\dots,Q_d\right]\in\mathbb{R}^d.
 \end{equation}
 
-Aqui, $\tau_t$ é a tarefa composta corrente, $m$ é um método candidato e cada
-$Q_i$ estima o retorno descontado do objetivo $i$ ao selecionar $m$. A
-dependência explícita de $\mathbf{w}_t$ permite à aproximação aprender valores
+Aqui, $C_t$ é a tarefa composta corrente, $WS_t$ é o estado simbólico relevante,
+$M$ é um método candidato, $d$ é o número de objetivos e cada $Q_i$ estima o
+retorno descontado do objetivo $i$ ao selecionar $M$. O vetor de preferências
+satisfaz $\mathbf{w}_t\in\Delta^{d-1}$ no caso de escalarização linear
+normalizada.
+A dependência explícita de $\mathbf{w}_t$ permite à aproximação aprender valores
 ou políticas condicionadas pela preferência, sem transferir ao HTN a decisão de
 compromisso entre objetivos.
+A recompensa vetorial não é alterada pelos pesos: a dependência em
+$\mathbf{w}_t$ decorre da política de continuação condicionada por preferência,
+que pode produzir trajetórias e retornos vetoriais esperados diferentes.
 
 Sob escalarização linear, a seleção é:
 
 \begin{equation}
- m_t^* =
- \arg\max_{m\in M_{\mathrm{valid}}(s_t,\tau_t)}
+ M_t^* =
+ \arg\max_{M\in \mathcal{M}_{\mathrm{valid}}(C_t,WS_t)}
  \mathbf{w}_t^{\top}
- \mathbf{Q}(s_t,\tau_t,m,\mathbf{w}_t).
+ \mathbf{Q}_{\theta}(C_t,WS_t,M,\mathbf{w}_t).
 \end{equation}
+
+No primeiro estágio experimental, a utilidade será restrita à escalarização
+linear, com $w_i\geq 0,\qquad \sum_i w_i=1$.
+Sob essa hipótese, os critérios \textit{Scalarised Expected Returns} (SER) e
+\textit{Expected Scalarised Returns} (ESR) coincidem.
+Utilidades não lineares, preferências lexicográficas e a distinção entre SER
+e ESR permanecem fora do escopo inicial \cite{hayes2022morl}.
 
 A máscara de métodos válidos restringe exploração e inferência às alternativas
 permitidas pelo HTN. Desse modo, o MORL aprende preferências entre decisões
@@ -480,21 +516,52 @@ Nessa expressão, $\mathbf{r}_{t+i}$ é a recompensa vetorial no passo primitivo
 $t+i$, $\gamma$ é o fator de desconto e $k$ é a duração da execução até a
 próxima escolha de método, término ou interrupção.
 
+Para treinamento de valor de longo prazo, o retorno acumulado é apenas o
+primeiro termo de uma atualização semi-Markoviana.
+Distinguindo $t$ como o tempo primitivo e $j$ como o índice da decisão HTN,
+seja $t_j$ o início da decisão, $t_{j+1}$ o instante da próxima decisão
+hierárquica ou do término do episódio, e $k_j=t_{j+1}-t_j$.
+Então:
+
+\begin{equation}
+\mathbf{R}^{\mathrm{method}}_j =
+\sum_{i=0}^{k_j-1}\gamma^i\mathbf{r}_{t_j+i},
+\qquad
+\mathbf{y}_j =
+\mathbf{R}^{\mathrm{method}}_j +
+\gamma^{k_j}\mathbf{V}_{\mathrm{cont}}(C_{j+1},WS_{t_{j+1}},\mathbf{w}_{j+1}),
+\end{equation}
+
+Para transições não terminais, $\mathbf{V}_{\mathrm{cont}}$ denota a estimativa
+vetorial de continuação definida pelo algoritmo MORL selecionado. Em uma
+implementação baseada em Q-learning/DQN, ela pode ser estimada por
+$\mathbf{Q}_{\theta^-}(C_{j+1},WS_{t_{j+1}},M^*_{j+1},\mathbf{w}_{j+1})$, em que
+$M^*_{j+1}$ é obtido pelo \textit{argmax} mascarado da política.
+Em terminais, $\mathbf{y}_j=\mathbf{R}^{\mathrm{method}}_j$.
+Essa formulação é compatível com a atualização SMDP para decisões
+temporalmente estendidas \cite{sutton1999options}; ela não pressupõe que um método
+HTN seja uma \textit{Option}, pois o método permanece uma decomposição simbólica
+definida pelo projetista.
+
 \section{Arquitetura híbrida proposta}
 
 A integração é definida pelo seguinte fluxo:
 
 \begin{align}
-(s_t,\tau_t)
+(C_t,WS_t)
 &\longrightarrow \text{filtragem HTN}
-\longrightarrow M_{\mathrm{valid}}(s_t,\tau_t),\\
-(g_t,s_t,p,c_t)
-&\longrightarrow E
+\longrightarrow \mathcal{M}_{\mathrm{valid}}(C_t,WS_t),\\
+(\text{jogo},\text{diretor},\text{perfil},\text{regra},C_t,WS_t)
+&\longrightarrow \text{fonte de preferências}
 \longrightarrow \mathbf{w}_t,\\
-(M_{\mathrm{valid}},s_t,\tau_t,\mathbf{w}_t)
+(\mathcal{M}_{\mathrm{valid}},C_t,WS_t,\mathbf{w}_t)
 &\longrightarrow \text{MORL}
-\longrightarrow m_t^*.
+\longrightarrow M_t^*.
 \end{align}
+
+A fonte de preferências é obrigatória como interface de fornecimento de
+$\mathbf{w}_t$; codificadores relacionais ou aprendidos são implementações
+opcionais dessa interface.
 
 O método selecionado é decomposto em subtarefas, e as tarefas primitivas são
 executadas por controladores tradicionais.
@@ -502,5 +569,12 @@ Após a execução, o ambiente produz um novo estado e um vetor de recompensas,
 permitindo atualizar ou avaliar a política.
 Essa divisão torna explícitas quatro responsabilidades: validade semântica,
 preferência comportamental, utilidade aprendida e execução de baixo nível.
+
+Como contraste, Li et al.\ resolvem otimização multiobjetivo HTN por busca
+heurística e \textit{anytime}, comparando planos parciais por dominância e
+mantendo um conjunto de planos não dominados \cite{li2024mohtn}.
+A proposta presente não assume ser mais rápida: sua hipótese é que a avaliação
+aprendida possa amortizar parte desse trabalho, deslocando exploração para
+treinamento e reduzindo o trabalho no caminho normal da decisão online.
 
 \input{figures/htn_morl_architecture}

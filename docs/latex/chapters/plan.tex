@@ -31,17 +31,18 @@ as variações de contexto pode crescer rapidamente.
 
 O aprendizado por reforço permite adaptação por experiência, porém o
 aprendizado direto de ações de baixo nível amplia os espaços de estado e ação,
-pode exigir grandes volumes de interação e reduz a transparência da decisão. O
-MORL acrescenta a possibilidade de representar explicitamente objetivos
+pode exigir grandes volumes de interação e reduz a transparência da decisão.
+O MORL acrescenta a possibilidade de representar explicitamente objetivos
 conflitantes, como sobrevivência, cumprimento da missão, proteção de aliados,
 conservação de recursos, furtividade e velocidade.
 
 A proposta combina essas propriedades: o HTN define o que é semanticamente
-válido; um codificador de preferências fornece $\mathbf{w}_t$ para expressar o
+válido; uma fonte de preferências fornece $\mathbf{w}_t$ para expressar o
 compromisso vigente; e o MORL escolhe qual método HTN válido deve decompor a
 tarefa composta corrente.
-O codificador é comparado como módulo auxiliar, e não como uma camada de
-planejamento independente.
+A geração de preferências é comparada como componente auxiliar; codificadores
+são implementações opcionais dessa fonte, e não uma camada de planejamento
+independente.
 
 \section{Problema de pesquisa}
 
@@ -54,7 +55,7 @@ perigos, objetivo da missão, personalidade ou eventos ocorridos durante a execu
 Uma política puramente aprendida, por outro lado, pode selecionar
 comportamentos inválidos, incoerentes ou difíceis de explicar.
 O problema investigado é, portanto, como introduzir adaptação multiobjetivo na
-escolha de métodos HTN sem perder a validade semântica, a interpretabilidade e
+escolha de métodos HTN sem perder a validade semântica, a rastreabilidade e a auditabilidade
 o controle de designer fornecidos pelo planejamento simbólico.
 
 \section{Questão principal}
@@ -62,7 +63,7 @@ o controle de designer fornecidos pelo planejamento simbólico.
 \begin{quote}
 O aprendizado por reforço multiobjetivo condicionado por preferências pode
 melhorar a seleção online de métodos de decomposição HTN para NPCs, preservando
-validade semântica, interpretabilidade e desempenho de decisão em tempo real?
+validade semântica, rastreabilidade, auditabilidade e desempenho de decisão em tempo real?
 \end{quote}
 
 \section{Questões secundárias}
@@ -88,6 +89,6 @@ O escopo experimental inicial será restrito a um agente principal, um domínio
 controlado, três a cinco tarefas compostas, duas a cinco alternativas por
 tarefa e três a cinco objetivos.
 Coordenação multiagente fica fora da contribuição principal.
-O codificador de grafo é a primeira alternativa
-estrutural; o codificador profundo é condicional aos resultados, aos dados e ao
-orçamento experimental disponíveis.
+Uma fonte relacional de preferências é a primeira alternativa estrutural; um
+codificador profundo é condicional aos resultados, aos dados e ao orçamento
+experimental disponíveis.

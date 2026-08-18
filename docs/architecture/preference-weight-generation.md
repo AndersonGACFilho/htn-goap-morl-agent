@@ -1,29 +1,30 @@
-# Preference-weight generation
+# Preference sources and optional weight generation
 
 ## Role in the architecture
 
-The research focus is MORL-guided HTN method selection at planning time. A preference vector $\mathbf{w}_t$ is an input that expresses the current trade-off among objectives, but the mechanism that produces it is a **replaceable experimental component**, not a separate planner and not the central contribution.
+The research focus is MORL-guided HTN method selection at planning time. A preference vector $\mathbf{w}_t$ is an input that expresses the current trade-off among objectives. It may be supplied directly by the game or AI director, or produced by a **replaceable experimental component**; it is not a separate planner and not the central contribution.
 
-At each HTN decision point, the preference encoder receives the current symbolic state, high-level goal, environment context, and optional agent profile. It produces a normalized vector:
+At each HTN decision point, a preference source supplies a normalized vector:
 
 $$
-\mathbf{w}_t = [w_1, w_2, \ldots, w_k]
+\mathbf{w}_t = [w_1, w_2, \ldots, w_d]\in\mathbb{R}^d
 $$
 
-Here, $t$ identifies the current HTN decision point, $\mathbf{w}_t$ is the preference vector supplied at that point, $w_j$ is the weight of objective $j$, and $k$ is the number of objectives. When linear scalarization is used, weights are normally constrained by $w_j \geq 0$ and $\sum_{j=1}^{k} w_j = 1$.
+Here, $t$ identifies the current HTN decision point, $\mathbf{w}_t$ is the preference vector supplied at that point, $w_j$ is the weight of objective $j$, and $d$ is the number of objectives. When linear scalarization is used, weights are normally constrained by $w_j \geq 0$ and $\sum_{j=1}^{d} w_j = 1$.
 
-The MORL policy receives $\mathbf{w}_t$ together with the feasible-method mask supplied by HTN. The encoder cannot make an invalid method eligible; validity remains exclusively the planner's responsibility. In the latency-sensitive online path, $\mathbf{w}_t$ may come directly from a game profile, AI director, or explicit rule; a graph or deep encoder is optional and must not be required for every decision.
+The MORL policy receives $\mathbf{w}_t$ together with the feasible-method mask supplied by HTN. A preference source cannot override the HTN validity mask; an optional learned encoder is subject to the same constraint. In the latency-sensitive online path, $\mathbf{w}_t$ may come directly from a game profile, AI director, or explicit rule; a graph or deep encoder is optional and must not be required for every decision.
 
-## Encoder families
+## Preference-source families
 
-| Encoder          | Input                                    | Output                    | Purpose                                |
-|------------------|------------------------------------------|---------------------------|----------------------------------------|
-| Fixed profile    | Designer-selected profile                | Constant $\mathbf{w}$     | Minimum MORL baseline.                 |
-| Explicit rules   | State and context                        | Documented $\mathbf{w}_t$ | Interpretable dynamic baseline.        |
-| Relational graph | Typed state-and-goal graph               | Contextual $\mathbf{w}_t$ | Main structural candidate.             |
-| Deep learning    | Features or learned state representation | Contextual $\mathbf{w}_t$ | Candidate for learned generalization.  |
+| Source             | Input                                    | Output                    | Purpose                                |
+|--------------------|------------------------------------------|---------------------------|----------------------------------------|
+| Fixed profile      | Designer-selected profile                | Constant $\mathbf{w}$     | Minimum MORL baseline.                 |
+| Game / AI director | Runtime intent or scenario configuration | Contextual $\mathbf{w}_t$ | Direct low-latency source.             |
+| Explicit rules     | State and context                        | Documented $\mathbf{w}_t$ | Interpretable dynamic baseline.        |
+| Relational graph   | Typed state-and-goal graph               | Contextual $\mathbf{w}_t$ | Main structural candidate.             |
+| Deep learning      | Features or learned state representation | Contextual $\mathbf{w}_t$ | Candidate for learned generalization.  |
 
-## Relational graph encoder
+## Optional relational graph encoder
 
 The graph represents the relationships that matter for preferences. Candidate node types are goals, symbolic predicates, resources, threats, actors, HTN methods, and reward components. Candidate edge types include:
 
@@ -35,7 +36,7 @@ The graph represents the relationships that matter for preferences. Candidate no
 
 The representation is inspired by GOAP's explicit treatment of goals, conditions, effects, and costs. It does **not** add a GOAP search loop, calculate a GOAP plan, or introduce a second source of planning decisions. A graph neural network or message-passing aggregation can map the graph to $\mathbf{w}_t$.
 
-## Deep-learning encoder
+## Optional deep-learning encoder
 
 For a fixed-size observation, an MLP can infer $\mathbf{w}_t$ from state features, the current goal, context, and agent profile. When relationships and entity counts vary, a graph neural network is more appropriate. The output should be normalized, for example with softmax, and logged with each decision.
 
