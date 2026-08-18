@@ -1,0 +1,75 @@
+\begin{figure}[htbp]
+\centering
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\small,
+    >=Latex,
+    node distance=10mm and 18mm,
+    block/.style={
+        rectangle, rounded corners=2mm, draw, thick, align=center,
+        minimum width=35mm, minimum height=10mm
+    },
+    htn/.style={block, draw=htnblue, fill=htnblue!8},
+    morl/.style={block, draw=morlred, fill=morlred!8},
+    fallback/.style={block, draw=fallbackorange, fill=fallbackorange!10},
+    runtime/.style={block, draw=envgray, fill=envgray!7},
+    decision/.style={
+        diamond, aspect=2.1, draw=black!70, fill=black!3, thick, align=center,
+        inner sep=1.5pt
+    },
+    arrow/.style={->, thick}
+]
+    \node[htn] (compound) {Compound Task $C_t$};
+    \node[htn, below=of compound] (filter) {HTN filters methods};
+    \node[morl, below=of filter] (select) {MORL selects $M_t^*$};
+    \node[htn, below=of select] (decompose) {Decompose only $M_t^*$};
+    \node[decision, below=12mm of decompose] (success)
+        {Decomposition\\successful?};
+    \node[runtime, below left=15mm and 22mm of success] (execute)
+        {Execute resulting\\primitive tasks};
+
+    \node[fallback, below right=15mm and 22mm of success] (mask)
+        {Mask failed $M_t^*$};
+    \node[fallback, below=of mask] (remaining)
+        {Updated feasible-method mask};
+    \node[decision, below=of remaining] (left)
+        {Any methods\\left?};
+    \node[runtime, below right=13mm and 18mm of left] (failure)
+        {Compound Task\\Failure};
+
+    \node[decision, below=of execute] (invalid)
+        {Runtime state\\invalidates plan?};
+    \node[runtime, below left=14mm and 19mm of invalid] (continue)
+        {Continue execution};
+    \node[runtime, below right=14mm and 19mm of invalid] (replan)
+        {Sense current $WS$\\and replan};
+
+    \draw[arrow, htnblue] (compound) -- (filter);
+    \draw[arrow, morlred] (filter) -- (select);
+    \draw[arrow, htnblue] (select) -- (decompose);
+    \draw[arrow] (decompose) -- (success);
+    \draw[arrow] (success) -- node[above left] {yes} (execute);
+    \draw[arrow, fallbackorange] (success) --
+        node[above right] {no} (mask);
+    \draw[arrow, fallbackorange] (mask) -- (remaining);
+    \draw[arrow, fallbackorange] (remaining) -- (left);
+    \draw[arrow, fallbackorange, rounded corners] (left.east)
+        -- ++(26mm,0) |- node[pos=.22,right,align=left]
+        {yes: fallback\\selection} (select.east);
+    \draw[arrow] (left) -- node[above right] {no} (failure);
+
+    \draw[arrow] (execute) -- (invalid);
+    \draw[arrow] (invalid) -- node[above left] {no} (continue);
+    \draw[arrow] (invalid) -- node[above right] {yes} (replan);
+    \draw[arrow, envgray, dashed, rounded corners] (replan.east)
+        -- ++(28mm,0) |- node[pos=.22,right,align=left]
+        {current\\World State} (compound.east);
+\end{tikzpicture}%
+}
+\caption{Separação entre o caminho online normal, a recuperação por
+\emph{method fallback} e o replanejamento. O fallback só ocorre após falha de
+decomposição e retorna ao MORL com uma máscara atualizada. Mudanças durante a
+execução provocam replanejamento a partir do estado corrente, não backtracking
+sobre um estado simbólico obsoleto.}
+\label{fig:htn-morl-fallback}
+\end{figure}

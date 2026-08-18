@@ -44,9 +44,9 @@ flowchart LR
     H --> M[Feasible methods]
     G[Goal, context, profile] --> E[Preference encoder]
     E --> W[Preference vector w_t]
-    M --> R[MORL method ranking]
+    M --> R[MORL selects one method]
     W --> R
-    R --> P[HTN decomposition]
+    R --> P[HTN decomposes only M*]
     P --> X[Primitive-task execution]
     X --> O[Vector reward and new state]
 ```
@@ -62,7 +62,7 @@ The implemented baseline is symbolic. It includes:
 - a runnable GridWorld with BFS navigation, terminal rendering, a key, door,
   obstacles, and a goal.
 
-MORL training, preference encoders, vector rewards, and learned method ranking
+MORL training, preference encoders, vector rewards, and learned direct method selection
 are not implemented yet. They are the next research stages, not features of the
 current runtime.
 
@@ -74,7 +74,7 @@ current runtime.
 | Sensors, agent tick loop, and replanning       | Available | State observations update the agent; it validates the remaining plan before replanning.   |
 | GridWorld, BFS navigation, and rendering       | Available | The executable example includes keys, doors, obstacles, and a goal.                       |
 | Vector rewards and multi-objective environment | Planned   | Required before MORL experiments.                                                         |
-| MORL method ranking with an HTN validity mask  | Planned   | The central research contribution.                                                        |
+| MORL direct method selection with an HTN validity mask | Planned | The central research contribution; fallback occurs only after decomposition failure. |
 | Preference encoders                            | Planned   | Fixed profiles and rules precede relational-graph and conditional deep-learning variants. |
 
 ## GridWorld example

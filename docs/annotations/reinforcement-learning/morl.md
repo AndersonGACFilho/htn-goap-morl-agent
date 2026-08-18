@@ -12,14 +12,14 @@ For example, a game agent may want to complete a mission, avoid damage, conserve
 
 ## Core concepts
 
-| Term | Meaning in this project |
-|---|---|
-| Vector reward $\mathbf{r}_t$ | Per-objective feedback after execution. |
-| Vector return $\mathbf{G}_t$ | Discounted accumulation of vector rewards. |
-| Preference vector $\mathbf{w}$ | Relative importance of objectives for the current decision. |
-| Utility $u_{\mathbf{w}}(\mathbf{G}_t)$ | A scalar comparison induced by a preference model. |
-| Pareto trade-off | A solution for which improving one objective requires worsening another. |
-| Coverage set | Policies or method-selection behaviors useful for different preferences. |
+| Term                                   | Meaning in this project                                                  |
+|----------------------------------------|--------------------------------------------------------------------------|
+| Vector reward $\mathbf{r}_t$           | Per-objective feedback after execution.                                  |
+| Vector return $\mathbf{G}_t$           | Discounted accumulation of vector rewards.                               |
+| Preference vector $\mathbf{w}$         | Relative importance of objectives for the current decision.              |
+| Utility $u_{\mathbf{w}}(\mathbf{G}_t)$ | A scalar comparison induced by a preference model.                       |
+| Pareto trade-off                       | A solution for which improving one objective requires worsening another. |
+| Coverage set                           | Policies or method-selection behaviors useful for different preferences. |
 
 When linear scalarization is appropriate, a preference vector can be used as:
 
@@ -41,7 +41,7 @@ $$
 
 Here, $s_t$ is the current symbolic state, $\tau_t$ is the current compound task, $\mathcal{M}(\tau_t)$ is the set of methods declared for that task, $m$ is one candidate method, and $\mathcal{M}_{\mathrm{valid}}$ is the subset whose preconditions hold in $s_t$.
 
-Only then does MORL rank candidates. A conceptual decision rule is:
+Only then does MORL make one direct selection. A conceptual decision rule is:
 
 $$
 m^* = \underset{m \in \mathcal{M}_{\mathrm{valid}}(s_t, \tau_t)}{\operatorname{arg\,max}}\; u_{\mathbf{w}}\!\left(\mathbf{Q}(s_t, \tau_t, m)\right)
@@ -49,7 +49,7 @@ $$
 
 In this equation, $m^*$ is the selected method, $\mathbf{Q}(s_t, \tau_t, m)$ is the estimated vector value of choosing $m$ in state $s_t$ for task $\tau_t$, and $\operatorname{arg\,max}$ returns the candidate with the highest utility under $\mathbf{w}$.
 
-`Q` is a vector-valued estimate of the consequence of choosing method `m`, not an authorization to execute an arbitrary primitive action. The planner's feasible-method mask is authoritative: MORL cannot select a method excluded by symbolic preconditions.
+`Q` is a vector-valued estimate of the consequence of choosing method `m`, not an authorization to execute an arbitrary primitive action. The planner's feasible-method mask is authoritative: MORL cannot select a method excluded by symbolic preconditions. The online path does not expand or compare partial plans for every candidate: one masked inference selects $m^*$, and HTN decomposes only $m^*$.
 
 ```mermaid
 flowchart LR
@@ -60,8 +60,8 @@ flowchart LR
     W --> P[Preference vector w]
     M --> Q[MORL method-value estimates]
     P --> Q
-    Q --> C[Select a valid Method]
-    C --> D[HTN decomposition]
+    Q --> C[Select one valid Method M*]
+    C --> D[Decompose only M*]
     D --> E[Primitive-task execution]
     E --> R[Vector reward and next state]
 ```
@@ -70,6 +70,12 @@ This separation preserves two different guarantees:
 
 - **HTN validity:** the selected method satisfies the domain's hard symbolic conditions.
 - **MORL adaptation:** among valid methods, the choice reflects the current objective trade-off.
+
+## Failure recovery and replanning
+
+Selection, decomposition failure, and runtime change are distinct events. A method whose preconditions fail is removed by the HTN mask and never reaches MORL. A method that is locally valid may still fail while its subtasks are decomposed; only then does the planner use **method fallback**: it masks the failed method and asks MORL to select again from the remaining methods. If the state and preferences are unchanged, the original method values can be reused and only a new masked `argmax` is needed.
+
+By contrast, a world change during primitive execution does not search backward through a stale symbolic state. The agent senses the current state and replans from that state. Thus, fallback is local recovery during decomposition, while replanning responds to runtime invalidation.
 
 ## Preferences and context change
 
@@ -93,14 +99,14 @@ This is a semi-MDP-style transition. It avoids assigning all credit to one primi
 
 The evaluation should distinguish four effects that are otherwise easy to conflate:
 
-| Comparison | Isolates |
-|---|---|
-| Fixed HTN order vs. MORL with fixed $\mathbf{w}$ | Learned ranking among valid methods. |
-| Fixed $\mathbf{w}$ vs. dynamic rule-based $\mathbf{w}_t$ | Adaptation to changing preferences. |
-| Rules vs. graph/deep encoder | Value of structured or learned preference inference. |
-| MORL with and without HTN mask in a safe test setting | Value of symbolic validity filtering. |
+| Comparison                                               | Isolates                                             |
+|----------------------------------------------------------|------------------------------------------------------|
+| Fixed HTN order vs. MORL with fixed $\mathbf{w}$         | Learned direct selection among valid methods.        |
+| Fixed $\mathbf{w}$ vs. dynamic rule-based $\mathbf{w}_t$ | Adaptation to changing preferences.                  |
+| Rules vs. graph/deep encoder                             | Value of structured or learned preference inference. |
+| MORL with and without HTN mask in a safe test setting    | Value of symbolic validity filtering.                |
 
-Useful metrics include vector return, utility under held-out preferences, task success, invalid-method selection rate, adaptation latency, method-switch stability, and planning-time latency. The full integration proposal is described in [the symbolic MORL architecture](../../architecture/symbolic-morl.md).
+Useful metrics include vector return, utility under held-out preferences, task success, invalid-method selection rate, decomposition-fallback rate, adaptation latency, method-switch stability, and normal-path planning-time latency. The full integration proposal is described in [the symbolic MORL architecture](../../architecture/symbolic-morl.md).
 
 ## Current project status
 

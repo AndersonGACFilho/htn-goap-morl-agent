@@ -85,7 +85,11 @@ Todos os codificadores serão avaliados sob a mesma interface $E(g_t,s_t,p,c_t)\
 
 A política receberá estado, tarefa composta, máscara de métodos válidos e vetor
 de preferência.
-A ação será a escolha de um método.
+A ação será a escolha direta de um único método. O treinamento poderá explorar
+decomposições e episódios completos offline para aprender os valores vetoriais
+das alternativas; durante a execução online, a decisão deverá ser uma inferência
+mascarada em cada ponto de seleção HTN, seguida da decomposição apenas do método
+escolhido.
 O treinamento amostrará estados iniciais, configurações de cenário, eventos e
 vetores de preferência.
 O orçamento de treinamento, os hiperparâmetros e as escalas de recompensa serão
@@ -95,6 +99,14 @@ A atribuição de crédito será definida no nível da decisão hierárquica.
 O retorno poderá acumular recompensas durante a execução das subtarefas produzidas
 pelo método até a próxima escolha HTN, término da decomposição ou interrupção por
 replanejamento.
+
+Se a decomposição do método escolhido falhar, ele será removido temporariamente
+da máscara e o MORL fará nova seleção entre os métodos restantes. Esse
+\emph{fallback} é uma recuperação excepcional, e não a busca normal sobre todos
+os métodos. Mudanças do mundo durante a execução exigem replanejamento a partir
+do estado observado.
+
+\input{figures/offline_online_morl}
 
 \section{Baselines}
 

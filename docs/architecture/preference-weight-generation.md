@@ -12,16 +12,16 @@ $$
 
 Here, $t$ identifies the current HTN decision point, $\mathbf{w}_t$ is the preference vector supplied at that point, $w_j$ is the weight of objective $j$, and $k$ is the number of objectives. When linear scalarization is used, weights are normally constrained by $w_j \geq 0$ and $\sum_{j=1}^{k} w_j = 1$.
 
-The MORL policy receives $\mathbf{w}_t$ together with the feasible-method mask supplied by HTN. The encoder cannot make an invalid method eligible; validity remains exclusively the planner's responsibility.
+The MORL policy receives $\mathbf{w}_t$ together with the feasible-method mask supplied by HTN. The encoder cannot make an invalid method eligible; validity remains exclusively the planner's responsibility. In the latency-sensitive online path, $\mathbf{w}_t$ may come directly from a game profile, AI director, or explicit rule; a graph or deep encoder is optional and must not be required for every decision.
 
 ## Encoder families
 
-| Encoder          | Input                                    | Output           | Purpose                               |
-|------------------|------------------------------------------|------------------|---------------------------------------|
-| Fixed profile    | Designer-selected profile                | Constant $\mathbf{w}$ | Minimum MORL baseline. |
-| Explicit rules   | State and context                        | Documented $\mathbf{w}_t$ | Interpretable dynamic baseline. |
-| Relational graph | Typed state-and-goal graph               | Contextual $\mathbf{w}_t$ | Main structural candidate. |
-| Deep learning    | Features or learned state representation | Contextual $\mathbf{w}_t$ | Candidate for learned generalization. |
+| Encoder          | Input                                    | Output                    | Purpose                                |
+|------------------|------------------------------------------|---------------------------|----------------------------------------|
+| Fixed profile    | Designer-selected profile                | Constant $\mathbf{w}$     | Minimum MORL baseline.                 |
+| Explicit rules   | State and context                        | Documented $\mathbf{w}_t$ | Interpretable dynamic baseline.        |
+| Relational graph | Typed state-and-goal graph               | Contextual $\mathbf{w}_t$ | Main structural candidate.             |
+| Deep learning    | Features or learned state representation | Contextual $\mathbf{w}_t$ | Candidate for learned generalization.  |
 
 ## Relational graph encoder
 
@@ -43,7 +43,7 @@ The deep-learning encoder is an extension after the structural baseline. It shou
 
 ## Experimental comparison
 
-Every encoder is evaluated under the same HTN domain, feasible-method mask, MORL policy interface, reward scales, scenario set, seeds, and training budget. This isolates the effect of preference inference from the effect of symbolic filtering and method ranking.
+Every encoder is evaluated under the same HTN domain, feasible-method mask, MORL policy interface, reward scales, scenario set, seeds, and training budget. This isolates the effect of preference inference from the effect of symbolic filtering and direct method selection.
 
 | Comparison                         | Question                                                        |
 |------------------------------------|-----------------------------------------------------------------|
@@ -55,7 +55,7 @@ Every encoder is evaluated under the same HTN domain, feasible-method mask, MORL
 ## Constraints and observability
 
 - Normalize weights and record the normalization rule.
-- Apply smoothing, hysteresis, commitment periods, or switch costs if weights cause repeated method changes.
+- Apply smoothing, hysteresis, commitment periods, or switch costs if weights cause repeated method changes. A small change in $\mathbf{w}_t$ should normally affect the next HTN decision point, not interrupt an already committed method.
 - Log input context, $\mathbf{w}_t$, feasible methods, objective values, selected method, and observed outcome.
 - Measure preference stability, adaptation latency, held-out-context performance, and inference cost.
 

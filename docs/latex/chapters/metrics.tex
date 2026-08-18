@@ -52,15 +52,18 @@
 
 Para a arquitetura completa, espera-se taxa de seleção inválida igual a zero,
 pois os métodos não aplicáveis são removidos antes da decisão MORL. Falhas de
-execução posteriores devem ser contabilizadas separadamente.
+decomposição, falhas de execução e replanejamentos devem ser contabilizados
+separadamente.
 
 \section{Desempenho computacional}
 
 \begin{itemize}
 \item latência total de decisão e tempo de inferência;
 \item tempo de filtragem HTN;
+\item tempo de decomposição do método selecionado;
+\item taxa e custo de \emph{method fallback};
 \item tempo de treinamento;
-\item quantidade de métodos avaliados;
+\item quantidade de métodos decompostos no caminho normal;
 \item consumo de memória;
 \item estabilidade da frequência de decisão em tempo real.
 \end{itemize}

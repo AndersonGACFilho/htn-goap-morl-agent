@@ -8,11 +8,11 @@ $$
 
 Here, $o$ denotes one Option; $\mathcal{I}$ is its initiation set; $\pi$ is its internal policy; and $\beta$ specifies its termination behavior.
 
-| Component | Meaning                                                            |
-|-----------|--------------------------------------------------------------------|
-| $\mathcal{I}$ | Initiation set: the states in which the Option may start. |
-| $\pi$ | Internal policy: the behavior followed while the Option is active. |
-| $\beta$ | Termination condition: the probability or rule for ending control. |
+| Component     | Meaning                                                             |
+|---------------|---------------------------------------------------------------------|
+| $\mathcal{I}$ | Initiation set: the states in which the Option may start.           |
+| $\pi$         | Internal policy: the behavior followed while the Option is active.  |
+| $\beta$       | Termination condition: the probability or rule for ending control.  |
 
 The resulting decision process is a semi-Markov decision process (semi-MDP): one high-level decision can cover a variable number of primitive environment steps. See [Sutton, Precup, and Singh](../../reference/bibliography.md) for the original formulation.
 
@@ -20,12 +20,12 @@ The resulting decision process is a semi-Markov decision process (semi-MDP): one
 
 The project does not turn every HTN method into a learned Option. The correspondence is conceptual and helps define the right decision boundary for MORL-guided planning.
 
-| HTN concept                            | Closest Option concept | Shared idea                                          | Important difference                                                                                         |
-|----------------------------------------|------------------------|------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| Method preconditions | Initiation set $\mathcal{I}$ | Both restrict when a high-level choice can start. | HTN preconditions are symbolic hard checks, not a learned initiation classifier. |
-| Method decomposition | Internal policy $\pi$ | Both specify behavior over multiple steps. | A method is a task structure; it may contain further planning rather than a single learned policy. |
-| Decomposition completion or replanning | Termination $\beta$ | Both return control to the high level. | HTN termination follows task semantics and runtime validity, not necessarily a stochastic termination model. |
-| Symbolic effects and observed rewards  | Option outcome         | Both describe consequences of the high-level choice. | HTN effects are planning predictions; environment rewards are empirical feedback.                            |
+| HTN concept                            | Closest Option concept       | Shared idea                                           | Important difference                                                                                          |
+|----------------------------------------|------------------------------|-------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| Method preconditions                   | Initiation set $\mathcal{I}$ | Both restrict when a high-level choice can start.     | HTN preconditions are symbolic hard checks, not a learned initiation classifier.                              |
+| Method decomposition                   | Internal policy $\pi$        | Both specify behavior over multiple steps.            | A method is a task structure; it may contain further planning rather than a single learned policy.            |
+| Decomposition completion or replanning | Termination $\beta$          | Both return control to the high level.                | HTN termination follows task semantics and runtime validity, not necessarily a stochastic termination model.  |
+| Symbolic effects and observed rewards  | Option outcome               | Both describe consequences of the high-level choice.  | HTN effects are planning predictions; environment rewards are empirical feedback.                             |
 
 The distinction matters: a method should not be called an Option merely because it is hierarchical. The HTN method remains an explicit, designer-authored decomposition with symbolic validity guarantees.
 
@@ -58,11 +58,11 @@ The Hierarchical Programmatic Option Framework (HIPO) is useful related work bec
 
 The proposed HTN-MORL architecture differs in three key ways:
 
-| HIPO | Proposed HTN-MORL architecture |
-|---|---|
-| Retrieves programmatic Options as low-level policies. | Uses designer-authored HTN methods and decompositions. |
-| Learns a high-level policy over retrieved programs. | Uses MORL to rank symbolically feasible methods. |
-| Optimizes a task return. | Optimizes a vector return conditioned on current preferences. |
+| HIPO                                                  | Proposed HTN-MORL architecture                                |
+|-------------------------------------------------------|---------------------------------------------------------------|
+| Retrieves programmatic Options as low-level policies. | Uses designer-authored HTN methods and decompositions.        |
+| Learns a high-level policy over retrieved programs.   | Uses MORL to select one symbolically feasible method.         |
+| Optimizes a task return.                              | Optimizes a vector return conditioned on current preferences. |
 
 HIPO therefore supports the value of interpretable temporal structure, while this project studies how symbolic feasibility and multi-objective preferences constrain a planning-time choice.
 

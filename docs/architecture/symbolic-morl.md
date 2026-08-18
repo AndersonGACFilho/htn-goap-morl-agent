@@ -16,10 +16,9 @@ flowchart LR
     S[Symbolic state<br/>WorldState] --> F[HTN filters methods<br/>by preconditions]
     D[HTN domain] --> F
     F --> M{Feasible methods}
-    M --> Q[MORL policy<br/>evaluates trade-offs]
-    W[Preference encoder<br/>produces 𝐰] -. future .-> Q
-    Q --> R[Method ranking]
-    R --> P[Planner decomposes<br/>the selected method]
+    M --> Q[MORL policy<br/>selects one method]
+    W[Preference vector w] --> Q
+    Q --> P[Planner decomposes<br/>only the selected method]
     P --> A[PrimitiveTask plan]
     A --> E[Environment]
     E --> O[Reward vector r]
@@ -33,7 +32,7 @@ flowchart LR
 |--------------------|----------------------------------------------------------------------------------|
 | HTN                | Defines tasks, methods, preconditions, effects, and the decomposition structure. |
 | Symbolic filter    | Eliminates methods whose preconditions are not satisfied in `WorldState`.        |
-| MORL               | Evaluates or ranks the remaining methods according to multiple objectives.       |
+| MORL               | Selects one remaining method according to multiple objectives and preferences.   |
 | Executor           | Executes primitive tasks and observes results in the environment.                |
 | Training           | Learns method values from vector rewards.                                        |
 | Preference encoder | Supplies `𝐰` from context; it is an experimental, replaceable module.            |
@@ -63,7 +62,7 @@ See [preference-weight generation](preference-weight-generation.md) for the desi
 
 ## Proposed planner integration
 
-Today, `CompoundTask.get_feasible_methods(world_state)` returns applicable methods and the planner tries each in declaration order. The proposed evolution is to introduce a ranking policy before the backtracking loop:
+Today, `CompoundTask.get_feasible_methods(world_state)` returns applicable methods and the planner tries each in declaration order. The proposed evolution is to select one method directly at each HTN decision point. The policy receives the feasible-method mask, evaluates the alternatives in one inference, and decomposes only the selected method in the normal online path:
 
 ```mermaid
 flowchart TD
@@ -71,24 +70,32 @@ flowchart TD
     B --> C{Are there feasible methods?}
     C -->|no| X[branch failure]
     C -->|yes - current baseline| O[declaration order]
-    C -->|yes - future architecture| Q[rank with MORL policy]
+    C -->|yes - future architecture| Q[MORL selects M*]
     O --> T[try decomposition]
-    Q --> T
-    T -->|failure| N[next method]
-    N --> T
+    Q --> T[decompose only M*]
+    T -->|decomposition failure| N[mask M* and select again]
+    N --> Q
     T -->|success| P[return plan]
 ```
 
-Backtracking remains necessary: a high score does not guarantee that the complete decomposition will be viable given simulated effects or environment changes. The learned policy is a prioritization heuristic, not a replacement for symbolic validation.
+This is not a depth-first search over a MORL-ranked list. During normal operation, the loop runs once: filter, infer, select $M^*$, and decompose $M^*$. If that decomposition fails, the planner temporarily masks $M^*$ and invokes the same MORL selector over the remaining candidates. This **method fallback** is failure recovery, not the expected decision path.
+
+Three cases remain deliberately separate:
+
+1. A method with unsatisfied preconditions is excluded before MORL and never needs fallback.
+2. A locally valid method whose subtasks cannot be decomposed triggers method fallback at the same `CompoundTask`.
+3. A world change during primitive execution invalidates the current plan and triggers replanning from the current `WorldState`, rather than backtracking over an obsolete planning state.
+
+When the state and preference vector have not changed, the implementation may reuse the values from the first inference, mask the failed method, and take a new `argmax`. If either changes, it runs a new inference.
 
 ## Technical roadmap
 
 1. **HTN baseline — available:** instrument method selection, failures, replanning, and environment outcomes.
 2. **Multi-objective environment — future:** define the components of `r` and how each episode records returns.
-3. **HTN–MORL integration — future:** introduce a ranking interface for feasible methods while preserving deterministic fallback and backtracking.
-4. **Training — future:** learn a policy/value that estimates the trade-off for each feasible method.
+3. **HTN–MORL integration — future:** introduce a preference-conditioned, single-choice selector for feasible methods, plus MORL-guided method fallback after decomposition failure.
+4. **Training — future:** learn offline a policy/value that estimates the trade-off for each feasible method; online use is one masked inference at a decision point.
 5. **Preference encoders — experimental track:** compare fixed profiles, rules, relational graphs, and deep learning under the same MORL interface.
-6. **Experimental comparison — future:** measure ordered baseline versus MORL prioritization, including plan validity, replanning, vector return, and decision cost.
+6. **Experimental comparison — future:** measure ordered baseline versus MORL direct selection, including plan validity, fallback rate, replanning, vector return, and normal-path decision cost.
 
 ## Implications for GridWorld
 

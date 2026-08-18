@@ -78,8 +78,9 @@ Para a tarefa composta \texttt{HandleThreat}, o domínio pode definir os método
 \texttt{Protect\-Ally}, \texttt{Retreat} e \texttt{Flank}.
 Se não houver rota lateral, \texttt{Flank} é removido.
 Se não houver aliado, \texttt{Protect\-Ally} é removido.
-O MORL compara apenas os métodos restantes sob
-$\mathbf{w}_t$.
+O MORL seleciona diretamente o método de maior utilidade entre os métodos
+restantes sob $\mathbf{w}_t$; ele não constrói planos parciais para todas as
+alternativas no runtime.
 
 Uma explicação de decisão poderá assumir a forma: o agente selecionou
 \texttt{Protect\-Ally} porque o método era aplicável e apresentou a maior
@@ -94,7 +95,11 @@ possuíam os maiores pesos.
 \item o codificador de preferências fornece $\mathbf{w}_t$;
 \item o MORL seleciona um método válido;
 \item o método é decomposto em subtarefas;
+\item se a decomposição falhar, o método é mascarado e o MORL seleciona outra
+alternativa somente como recuperação de falha;
 \item controladores tradicionais executam as tarefas primitivas;
 \item o ambiente fornece novo estado e recompensa vetorial;
-\item o ciclo reinicia na próxima decisão hierárquica.
+\item uma mudança de mundo que invalide o plano provoca replanejamento a partir
+do estado corrente; caso contrário, o ciclo reinicia na próxima decisão
+hierárquica.
 \end{enumerate}

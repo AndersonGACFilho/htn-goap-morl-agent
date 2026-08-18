@@ -570,22 +570,31 @@ introduzida sem misturar falhas do planner com falhas de aprendizado.
 
 O planner atual percorre métodos aplicáveis segundo uma ordem definida no
 domínio e usa backtracking quando uma decomposição falha. Para a arquitetura
-proposta, a etapa de seleção deverá ser desacoplada da enumeração fixa. Dada uma
-tarefa composta, o planner deverá:
+proposta, a etapa de seleção deverá ser desacoplada da enumeração fixa. No
+caminho online normal, o seletor MORL recebe a máscara dos métodos aplicáveis,
+faz uma inferência e escolhe diretamente um único método $m^*$; somente $m^*$ é
+decomposto. Dada uma tarefa composta, o planner deverá:
 
 \begin{enumerate}
 \item identificar todos os métodos cujas pré-condições são satisfeitas;
 \item expor uma representação estável desses métodos ao seletor;
 \item aplicar uma máscara de validade durante treinamento e inferência;
-\item solicitar ao MORL a ordenação ou escolha da alternativa preferida;
-\item manter backtracking para falhas detectadas durante a decomposição;
+\item solicitar ao MORL a escolha direta da alternativa preferida;
+\item aplicar \emph{method fallback} somente se a decomposição escolhida falhar;
 \item registrar métodos rejeitados, valores estimados e método escolhido.
 \end{enumerate}
 
 É importante distinguir inaplicabilidade de falha posterior. A máscara HTN
-remove métodos que já violam restrições no estado corrente. O backtracking
-continua necessário quando uma decomposição inicialmente aplicável não produz
-um plano executável após a expansão de suas subtarefas.
+remove métodos que já violam restrições no estado corrente e esses métodos nunca
+chegam ao MORL. Se uma decomposição inicialmente aplicável não produz um plano
+executável após a expansão de suas subtarefas, o método selecionado é mascarado
+temporariamente e o MORL escolhe novamente entre as alternativas restantes.
+Essa recuperação não é uma busca DFS sobre uma lista ordenada: é excepcional e
+normalmente o ciclo seleciona e decompõe apenas um método. Quando o mundo muda
+durante a execução, o agente deve replanejar a partir do estado observado, e não
+fazer backtracking sobre um estado simbólico obsoleto.
+
+\input{figures/htn_morl_fallback}
 
 \section{Interface prevista}
 

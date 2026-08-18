@@ -9,7 +9,8 @@ and multi-objective reinforcement learning.
 The system separates decision-making into three layers: HTN defines
 long-term goals and decomposes them into subtasks, the GOAP-inspired
 layer configures tactical priorities and intentions, and the MORL layer
-selects concrete actions by optimizing multiple learned objectives.
+selects one symbolically valid HTN decomposition method according to
+multiple learned objectives.
 
 The goal is to investigate how symbolic planning and reinforcement
 learning can be integrated to produce agents with interpretable planning,
