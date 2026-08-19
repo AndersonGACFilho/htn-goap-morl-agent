@@ -30,9 +30,92 @@ autônomos capazes de tomar decisões em ambientes simulados.
 Antes de integrar aprendizado diretamente ao agente, é necessário definir
 claramente como estados, ações, recompensas, objetivos e transições serão
 representados.
-Por isso, a base teórica em Processos de Decisão de Markov, funções de valor,
-diferença temporal e aprendizado por reforço multiobjetivo é importante para
-as etapas futuras do trabalho.
+Por isso, a base teórica em bandits, Processos de Decisão de Markov, funções de
+valor, diferença temporal e aprendizado por reforço multiobjetivo é importante
+para as etapas futuras do trabalho.
+
+\section{Multi-armed bandits}
+
+Uma base importante estudada no início da pesquisa foi o problema dos
+\textit{multi-armed bandits}.
+Nesse problema, o agente escolhe repetidamente entre $k$ ações, cada uma
+com uma recompensa de média desconhecida.
+O valor real de uma ação é:
+
+\begin{equation}
+q_*(a) = E[R_t \mid A_t = a].
+\end{equation}
+
+Como esse valor é desconhecido, o agente mantém uma estimativa $Q_t(a)$.
+A estimativa por média amostral é:
+
+\begin{equation}
+Q_t(a) =
+\frac{\sum_{i=1}^{t-1} R_i I(A_i = a)}
+{\sum_{i=1}^{t-1} I(A_i = a)}.
+\end{equation}
+
+Essa formulação é importante porque introduz conceitos fundamentais como
+estimativa de valor, exploração, aproveitamento e atualização incremental em
+um cenário mais simples do que MDPs completos.
+Enquanto bandits não modelam transições explícitas entre estados, MDPs
+incorporam o efeito das ações sobre estados futuros.
+Por isso, bandits são uma porta de entrada conceitual para o
+estudo de aprendizado por reforço.
+
+\section{Atualização incremental}
+
+A atualização incremental evita recalcular a média completa a cada nova
+observação.
+A regra geral é:
+
+\begin{equation}
+Q_{n+1}(a) = Q_n(a) + \alpha_n(R_n - Q_n(a)).
+\end{equation}
+
+O termo $R_n - Q_n(a)$ representa o erro de previsão.
+Quando $\alpha_n = 1/n$, a atualização equivale à média amostral.
+Quando $\alpha$ é constante, o método dá maior peso a recompensas recentes,
+o que é útil em ambientes não estacionários.
+
+Essa ideia reaparece no Q-Learning.
+A diferença é que, no caso de Q-Learning, o erro de atualização inclui
+não apenas a recompensa imediata, mas também uma estimativa do melhor
+valor futuro possível.
+
+\section{Exploração e aproveitamento}
+
+O dilema exploração versus aproveitamento é central em aprendizado por
+reforço.
+Explorar significa testar ações pouco conhecidas.
+Aproveitar significa escolher a ação com melhor valor estimado.
+
+Uma política simples para equilibrar os dois comportamentos é
+$\varepsilon$-\textit{greedy}.
+Com probabilidade $1-\varepsilon$, o agente escolhe a melhor ação conhecida.
+Com probabilidade $\varepsilon$, escolhe uma ação aleatória.
+
+Outra estratégia estudada foi UCB, que escolhe ações considerando tanto o
+valor estimado quanto a incerteza:
+
+\begin{equation}
+A_t =
+\arg\max_a
+\left[
+Q_t(a) + c\sqrt{\frac{\ln t}{N_t(a)}}
+\right].
+\end{equation}
+
+Aqui, $N_t(a)$ indica quantas vezes a ação $a$ foi escolhida até o instante
+$t$, e $c$ controla a intensidade da exploração.
+
+No projeto, exploração e aproveitamento serão relevantes principalmente nas
+etapas futuras de aprendizado.
+A camada simbólica atual não aprende por tentativa e erro; ela usa
+decomposição explícita de objetivos e ações.
+Entretanto, quando métodos de aprendizado forem introduzidos, será necessário
+definir como o agente explora ações sem violar restrições simbólicas
+importantes.
 
 \section{Processos de Decisão de Markov}
 
@@ -258,89 +341,6 @@ conceitual para compreender funções de valor e atualização temporal,
 enquanto MORL representa a direção metodológica pretendida para a camada
 de aprendizado.
 
-\section{Multi-armed bandits}
-
-Uma base importante estudada no início da pesquisa foi o problema dos
-\textit{multi-armed bandits}.
-Nesse problema, o agente escolhe repetidamente entre $k$ ações, cada uma
-com uma recompensa de média desconhecida.
-O valor real de uma ação é:
-
-\begin{equation}
-q_*(a) = E[R_t \mid A_t = a].
-\end{equation}
-
-Como esse valor é desconhecido, o agente mantém uma estimativa $Q_t(a)$.
-A estimativa por média amostral é:
-
-\begin{equation}
-Q_t(a) =
-\frac{\sum_{i=1}^{t-1} R_i I(A_i = a)}
-{\sum_{i=1}^{t-1} I(A_i = a)}.
-\end{equation}
-
-Essa formulação é importante porque introduz conceitos fundamentais como
-estimativa de valor, exploração, aproveitamento e atualização incremental em
-um cenário mais simples do que MDPs completos.
-Enquanto bandits não modelam transições explícitas entre estados, MDPs
-incorporam o efeito das ações sobre estados futuros.
-Por isso, bandits são uma porta de entrada conceitual para o
-estudo de aprendizado por reforço.
-
-\section{Atualização incremental}
-
-A atualização incremental evita recalcular a média completa a cada nova
-observação.
-A regra geral é:
-
-\begin{equation}
-Q_{n+1}(a) = Q_n(a) + \alpha_n(R_n - Q_n(a)).
-\end{equation}
-
-O termo $R_n - Q_n(a)$ representa o erro de previsão.
-Quando $\alpha_n = 1/n$, a atualização equivale à média amostral.
-Quando $\alpha$ é constante, o método dá maior peso a recompensas recentes,
-o que é útil em ambientes não estacionários.
-
-Essa ideia reaparece no Q-Learning.
-A diferença é que, no caso de Q-Learning, o erro de atualização inclui
-não apenas a recompensa imediata, mas também uma estimativa do melhor
-valor futuro possível.
-
-\section{Exploração e aproveitamento}
-
-O dilema exploração versus aproveitamento é central em aprendizado por
-reforço.
-Explorar significa testar ações pouco conhecidas.
-Aproveitar significa escolher a ação com melhor valor estimado.
-
-Uma política simples para equilibrar os dois comportamentos é
-$\varepsilon$-\textit{greedy}.
-Com probabilidade $1-\varepsilon$, o agente escolhe a melhor ação conhecida.
-Com probabilidade $\varepsilon$, escolhe uma ação aleatória.
-
-Outra estratégia estudada foi UCB, que escolhe ações considerando tanto o
-valor estimado quanto a incerteza:
-
-\begin{equation}
-A_t =
-\arg\max_a
-\left[
-Q_t(a) + c\sqrt{\frac{\ln t}{N_t(a)}}
-\right].
-\end{equation}
-
-Aqui, $N_t(a)$ indica quantas vezes a ação $a$ foi escolhida até o instante
-$t$, e $c$ controla a intensidade da exploração.
-
-No projeto, exploração e aproveitamento serão relevantes principalmente nas
-etapas futuras de aprendizado.
-A camada simbólica atual não aprende por tentativa e erro; ela usa
-decomposição explícita de objetivos e ações.
-Entretanto, quando métodos de aprendizado forem introduzidos, será necessário
-definir como o agente explora ações sem violar restrições simbólicas
-importantes.
-
 \section{Planejamento simbólico}
 
 Planejamento simbólico representa estados, tarefas, ações e restrições por
@@ -381,6 +381,67 @@ aprendido.
 Assim, o modelo simbólico mantém a responsabilidade pela validade, enquanto
 a preferência entre alternativas válidas pode ser adaptada por experiência.
 
+\section{Planejamento HTN multiobjetivo}
+
+Em planejamento HTN multiobjetivo, a qualidade de um plano $\pi$ não é um
+escalar, mas um vetor de métricas a minimizar:
+
+\begin{equation}
+\mathbf{F}(\pi) = [f_1(\pi),f_2(\pi),\dots,f_d(\pi)].
+\end{equation}
+
+Li et al.\ formalizam o problema como
+$P^*=\langle s_0,\omega_0,O,M,\mathbf{F}\rangle$, em que $s_0$ é o estado
+inicial, $\omega_0$ a rede de tarefas inicial, $O$ o conjunto de operadores,
+$M$ o conjunto de métodos e $\mathbf{F}$ as métricas do plano
+\cite{li2024mohtn}. Para critérios de minimização, um plano $\pi_1$ domina
+$\pi_2$ quando não é pior em nenhum critério e é estritamente melhor em ao
+menos um:
+
+\begin{equation}
+\pi_1 \succ \pi_2
+\iff
+\left(\forall i,\ f_i(\pi_1) \leq f_i(\pi_2)\right)
+\land
+\left(\exists j,\ f_j(\pi_1) < f_j(\pi_2)\right).
+\end{equation}
+
+O algoritmo DSA (\textit{domination-based search approach}) combina duas
+etapas de planejamento. Primeiro, a busca heurística estima para cada método
+aplicável $m$ uma avaliação vetorial $h(m,s,t)$, obtida pela decomposição da
+tarefa $t$ no estado $s$. Métodos cujos planos estimados são dominados recebem
+menor prioridade; formalmente, $m_1 \succ m_2$ quando o plano estimado por
+$m_1$ domina o plano estimado por $m_2$. A mesma ideia é aplicada aos
+operadores de tarefas primitivas.
+
+Segundo, a busca \textit{anytime} mantém um conjunto $\Omega$ de planos não
+dominados e poda ramos cujo plano parcial é dominado por uma solução já
+encontrada. Quando surge um novo plano $\pi$, a atualização pode ser expressa
+como:
+
+\begin{equation}
+\Omega \leftarrow
+\left\{\rho \in \Omega \cup \{\pi\}
+\mid \not\exists\rho' \in \Omega \cup \{\pi\}: \rho' \succ \rho\right\}.
+\end{equation}
+
+Assim, o planejador pode devolver o conjunto corrente se for interrompido e,
+com mais tempo, continuar a buscar planos não dominados adicionais. O artigo
+compara o DSA com SHOP2 e com um algoritmo de busca baseado em preferências
+(PSA): enquanto o PSA repete a busca para diferentes pesos e pode podar
+alternativas não dominadas sob uma escalarização fixa, o DSA usa dominância
+vetorial para preservar compromissos distintos entre objetivos.
+
+Esse baseline não emprega aprendizado por reforço: não há política, função de
+valor, recompensa observada ou atualização por experiência. A diferença para a
+proposta deste trabalho é, portanto, algorítmica e operacional. O DSA explora
+o espaço de planos no instante do planejamento e retorna um conjunto
+multiobjetivo para escolha posterior; a arquitetura proposta filtra métodos
+HTN válidos e usa MORL para estimar valores vetoriais e selecionar um método
+sob o vetor de preferências corrente. A hipótese não é de superioridade geral
+de tempo, mas de que a avaliação aprendida possa amortizar parte da escolha
+online após treinamento, mantendo o HTN responsável pela validade semântica.
+
 \section{Aprendizado de valores para métodos HTN}
 
 Hogg, Kuter e Muñoz-Avila modelam a seleção de um método aplicável para
@@ -402,46 +463,6 @@ uma máscara de validade, mantendo o retorno escalar e o planner simbólico
 Esses trabalhos motivam baselines escalares, mas não tratam a seleção
 condicionada simultaneamente pelo estado, por preferências e por um retorno
 vetorial.
-
-\section{Fontes de preferências}
-
-GOAP representa objetivos, ações, pré-condições, efeitos e custos para buscar
-sequências que transformem o estado corrente em um estado desejado
-\cite{orkin2005,orkin2006}.
-Neste trabalho, GOAP não será introduzido como um segundo planejador entre
-HTN e MORL. Suas relações entre objetivos, condições, efeitos e recursos
-podem, contudo, inspirar uma representação de contexto usada por uma fonte de
-preferências.
-
-Uma fonte de preferências produz ou fornece diretamente um vetor normalizado de
-preferências a partir do contexto disponível $\xi_t$:
-
-\begin{equation}
-\mathbf{w}_t = \Phi(\xi_t),
-\qquad
-w_{i,t}\geq 0,
-\qquad
-\sum_i w_{i,t}=1.
-\end{equation}
-
-Nessa expressão, $\Phi$ é uma \textit{PreferenceSource}, $\xi_t$ representa o
-contexto disponível e $w_{i,t}$ é o peso do objetivo $i$ no instante $t$. Para
-fontes diretas, $\Phi$ pode ser uma tabela, perfil ou regra; para fontes
-aprendidas, pode ser um codificador parametrizado.
-Perfis fixos e regras explícitas constituem baselines reproduzíveis.
-A principal alternativa estrutural é um grafo relacional inspirado em GOAP,
-sem executar sua busca de planejamento; um modelo de aprendizado profundo será
-avaliado apenas se os dados, o orçamento e os resultados dos baselines justificarem
-essa extensão.
-Assim, a comparação entre fontes de preferência é uma parte auxiliar da pesquisa, enquanto
-a contribuição central permanece a seleção MORL de métodos HTN válidos.
-Em um contexto mais amplo de integração entre planejamento e aprendizado, uma
-base de políticas aprendidas pode apoiar a composição de soluções para tarefas
-complexas \cite{kuric2024}, e planejadores relacionais podem atuar em conjunto
-com RL para favorecer eficiência amostral, transferência e generalização
-\cite{prabhakar2025}. Esses trabalhos reforçam a pertinência de arquiteturas
-híbridas, sem resolver diretamente a seleção MORL de métodos HTN condicionada
-por preferências investigada nesta proposta.
 
 \section{Aprendizado por reforço multiobjetivo}
 
@@ -502,6 +523,46 @@ permitidas pelo HTN. Desse modo, o MORL aprende preferências entre decisões
 semanticamente aceitáveis, em vez de aprender diretamente ações de movimento,
 mira ou animação.
 
+\section{Fontes de preferências}
+
+GOAP representa objetivos, ações, pré-condições, efeitos e custos para buscar
+sequências que transformem o estado corrente em um estado desejado
+\cite{orkin2005,orkin2006}.
+Neste trabalho, GOAP não será introduzido como um segundo planejador entre
+HTN e MORL. Suas relações entre objetivos, condições, efeitos e recursos
+podem, contudo, inspirar uma representação de contexto usada por uma fonte de
+preferências.
+
+Uma fonte de preferências produz ou fornece diretamente um vetor normalizado de
+preferências a partir do contexto disponível $\xi_t$:
+
+\begin{equation}
+\mathbf{w}_t = \Phi(\xi_t),
+\qquad
+w_{i,t}\geq 0,
+\qquad
+\sum_i w_{i,t}=1.
+\end{equation}
+
+Nessa expressão, $\Phi$ é uma \textit{PreferenceSource}, $\xi_t$ representa o
+contexto disponível e $w_{i,t}$ é o peso do objetivo $i$ no instante $t$. Para
+fontes diretas, $\Phi$ pode ser uma tabela, perfil ou regra; para fontes
+aprendidas, pode ser um codificador parametrizado.
+Perfis fixos e regras explícitas constituem baselines reproduzíveis.
+A principal alternativa estrutural é um grafo relacional inspirado em GOAP,
+sem executar sua busca de planejamento; um modelo de aprendizado profundo será
+avaliado apenas se os dados, o orçamento e os resultados dos baselines justificarem
+essa extensão.
+Assim, a comparação entre fontes de preferência é uma parte auxiliar da pesquisa, enquanto
+a contribuição central permanece a seleção MORL de métodos HTN válidos.
+Em um contexto mais amplo de integração entre planejamento e aprendizado, uma
+base de políticas aprendidas pode apoiar a composição de soluções para tarefas
+complexas \cite{kuric2024}, e planejadores relacionais podem atuar em conjunto
+com RL para favorecer eficiência amostral, transferência e generalização
+\cite{prabhakar2025}. Esses trabalhos reforçam a pertinência de arquiteturas
+híbridas, sem resolver diretamente a seleção MORL de métodos HTN condicionada
+por preferências investigada nesta proposta.
+
 \section{Decisão hierárquica e abstração temporal}
 
 A literatura de aprendizado por reforço hierárquico organiza abstrações temporais
@@ -558,39 +619,3 @@ Essa formulação é compatível com a atualização SMDP para decisões
 temporalmente estendidas \cite{sutton1999options}; ela não pressupõe que um método
 HTN seja uma \textit{Option}, pois o método permanece uma decomposição simbólica
 definida pelo projetista.
-
-\section{Arquitetura híbrida proposta}
-
-A integração é definida pelo seguinte fluxo:
-
-\begin{align}
-(C_t,WS_t)
-&\longrightarrow \text{filtragem HTN}
-\longrightarrow \mathcal{M}_{\mathrm{valid}}(C_t,WS_t),\\
-(\text{jogo},\text{diretor},\text{perfil},\text{regra},C_t,WS_t)
-&\longrightarrow \text{fonte de preferências}
-\longrightarrow \mathbf{w}_t,\\
-(\mathcal{M}_{\mathrm{valid}},C_t,WS_t,\mathbf{w}_t)
-&\longrightarrow \text{MORL}
-\longrightarrow M_t^*.
-\end{align}
-
-A fonte de preferências é obrigatória como interface de fornecimento de
-$\mathbf{w}_t$; codificadores relacionais ou aprendidos são implementações
-opcionais dessa interface.
-
-O método selecionado é decomposto em subtarefas, e as tarefas primitivas são
-executadas por controladores tradicionais.
-Após a execução, o ambiente produz um novo estado e um vetor de recompensas,
-permitindo atualizar ou avaliar a política.
-Essa divisão torna explícitas quatro responsabilidades: validade semântica,
-preferência comportamental, utilidade aprendida e execução de baixo nível.
-
-Como contraste, Li et al.\ resolvem otimização multiobjetivo HTN por busca
-heurística e \textit{anytime}, comparando planos parciais por dominância e
-mantendo um conjunto de planos não dominados \cite{li2024mohtn}.
-A proposta presente não assume ser mais rápida: sua hipótese é que a avaliação
-aprendida possa amortizar parte desse trabalho, deslocando exploração para
-treinamento e reduzindo o trabalho no caminho normal da decisão online.
-
-\input{figures/htn_morl_architecture}

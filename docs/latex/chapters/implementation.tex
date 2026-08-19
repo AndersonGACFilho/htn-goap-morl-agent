@@ -10,59 +10,29 @@ decisão foi tomada porque o HTN fornece a estrutura de alto nível necessária
 para organizar o comportamento do agente.
 
 Antes de integrar uma fonte de preferências e o seletor MORL de métodos, é necessário
-garantir que o sistema consegue:
-
-\begin{itemize}
-\item representar estados simbólicos;
-\item decompor tarefas;
-\item verificar pré-condições;
-\item aplicar efeitos;
-\item gerar planos;
-\item executar planos;
-\item atualizar o estado por sensores;
-\item replannar quando o plano deixa de ser válido.
-\end{itemize}
+garantir a representação de estados simbólicos, a decomposição de tarefas, a
+verificação de pré-condições, a aplicação de efeitos, a geração e a execução de
+planos, a atualização do estado por sensores e o replanejamento quando o plano
+deixa de ser válido.
 
 \section{Componentes implementados}
 
-A implementação atual do baseline inclui:
-
-\begin{itemize}
-\item classe de estado de mundo;
-\item representação de pré-condições;
-\item representação de efeitos;
-\item tarefas primitivas;
-\item tarefas compostas;
-\item métodos de decomposição;
-\item domínio HTN;
-\item planner recursivo;
-\item interface abstrata de ação;
-\item status de ação;
-\item agente executor;
-\item sistema de sensores;
-\item delegate de mudança de estado;
-\item abstração de pathfinding;
-\item implementação BFS para grid;
-\item ambiente GridWorld;
-\item renderer em terminal.
-\end{itemize}
+A implementação atual contém uma classe de estado de mundo e representações de
+pré-condições, efeitos, tarefas primitivas, tarefas compostas e métodos de
+decomposição. Sobre essas abstrações, o domínio HTN e o \textit{planner} recursivo
+produzem planos, enquanto uma interface abstrata de ação e seus estados de
+execução permitem ao agente executor realizar as tarefas. O sistema também
+inclui sensores, um mecanismo de notificação de mudança de estado, uma abstração
+de busca de caminhos com BFS para o grid, o ambiente GridWorld e um
+visualizador em terminal.
 
 \section{Estado simbólico}
 
-O estado simbólico representa fatos observáveis sobre o mundo.
-Ele funciona como uma estrutura de pares chave-valor, contendo variáveis
-como:
-
-\begin{itemize}
-\item \texttt{agent\_x}
-\item \texttt{agent\_y}
-\item \texttt{has\_key}
-\item \texttt{door\_open}
-\item \texttt{at\_key}
-\item \texttt{at\_door}
-\item \texttt{at\_goal}
-\item \texttt{done}
-\end{itemize}
+O estado simbólico representa fatos observáveis sobre o mundo. Ele funciona
+como uma estrutura de pares chave-valor. No GridWorld atual, inclui
+\texttt{agent\_x}, \texttt{agent\_y}, \texttt{has\_key},
+\texttt{door\_open}, \texttt{at\_key}, \texttt{at\_door},
+\texttt{at\_goal} e \texttt{done}.
 
 O estado pode ser copiado.
 Isso é essencial porque o planner precisa simular efeitos sem modificar o
@@ -117,32 +87,73 @@ simulação das ações anteriores.
 
 \section{Planner recursivo}
 
-O planner implementado usa decomposição recursiva.
-Ele recebe uma tarefa e um estado simbólico.
-Se a tarefa for primitiva, verifica suas pré-condições e aplica seus
-efeitos simulados.
-Se a tarefa for composta, busca métodos aplicáveis e tenta decompor
-suas subtarefas.
+O método \texttt{build\_plan} percorre as tarefas raiz do domínio usando uma
+cópia do estado observado. Quando a expansão de uma tarefa tem sucesso, suas
+tarefas primitivas são anexadas ao plano e o estado simulado resultante é
+propagado para a próxima tarefa raiz, como mostra o Algoritmo
+\ref{alg:construir-plano}.
 
-O processo geral é:
+\begin{algorithm}[H]
+\caption{Método \texttt{build\_plan} do baseline HTN}
+\label{alg:construir-plano}
+\begin{algorithmic}[1]
+\Require domínio $D$, estado observado $WS_0$
+\Ensure plano de tarefas primitivas $P$
+\State $P \gets \langle\rangle$; $WS \gets \mathrm{Copia}(WS_0)$
+\ForAll{$\tau \in D.\mathrm{tasks}$}
+  \State $r \gets \Call{PlanejarRecursivamente}{\langle\rangle, WS, \tau}$
+  \If{$r \neq \mathrm{Falha}$}
+    \State $(P_\tau, WS) \gets r$
+    \State $P \gets P \mathbin{\Vert} P_\tau$
+  \EndIf
+\EndFor
+\State \Return $P$
+\end{algorithmic}
+\end{algorithm}
 
-\begin{enumerate}
-\item receber o domínio e o estado atual;
-\item copiar o estado para simulação;
-\item analisar a tarefa raiz;
-\item se a tarefa for composta, escolher métodos aplicáveis;
-\item decompor subtarefas recursivamente;
-\item se uma decomposição falhar, tentar outra;
-\item retornar uma lista de tarefas primitivas.
-\end{enumerate}
+\section{Planejamento recursivo e backtracking}
 
-\section{Backtracking}
+O método \texttt{recursive\_planning} expande uma tarefa sobre um estado
+simulado. Para uma tarefa primitiva, ele verifica pré-condições, inclui a tarefa
+no plano do ramo e aplica seus efeitos apenas à cópia de estado. Para uma tarefa
+composta, obtém os métodos aplicáveis e os tenta na ordem definida no domínio.
+Se alguma subtarefa falhar, o método inteiro é descartado e o próximo método é
+tentado. Esse é o backtracking em nível de método implementado no baseline.
 
-O planner possui backtracking em nível de método.
-Se uma decomposição não produz plano válido, outra decomposição pode
-ser tentada.
-Essa capacidade é importante porque permite que uma tarefa composta
-tenha várias soluções possíveis dependendo do estado.
+\begin{algorithm}[H]
+\caption{Método \texttt{recursive\_planning} com backtracking por método}
+\label{alg:planejar-recursivamente}
+\begin{algorithmic}[1]
+\Require prefixo $P$, estado simulado $WS$, tarefa $\tau$
+\Ensure $(P', WS')$ ou $\mathrm{Falha}$
+\If{$\tau$ é primitiva}
+  \If{$\neg\mathrm{PreCondicoesSatisfeitas}(\tau, WS)$}
+    \State \Return $\mathrm{Falha}$
+  \EndIf
+  \State $P' \gets \mathrm{Copia}(P)$; $WS' \gets \mathrm{Copia}(WS)$
+  \State $P' \gets P' \mathbin{\Vert} \langle\tau\rangle$
+  \State $WS' \gets \mathrm{AplicarEfeitos}(\tau, WS')$
+  \State \Return $(P', WS')$
+\EndIf
+\If{$\tau$ é composta}
+  \ForAll{$m \in \mathrm{MetodosAplicaveis}(\tau, WS)$, na ordem do domínio}
+    \State $P_m \gets \mathrm{Copia}(P)$; $WS_m \gets \mathrm{Copia}(WS)$
+    \State $falhou \gets \mathrm{falso}$
+    \ForAll{$\tau' \in m.\mathrm{subtasks}$}
+      \State $r \gets \Call{PlanejarRecursivamente}{P_m, WS_m, \tau'}$
+      \If{$r = \mathrm{Falha}$}
+        \State $falhou \gets \mathrm{verdadeiro}$; \State \textbf{break}
+      \EndIf
+      \State $(P_m, WS_m) \gets r$
+    \EndFor
+    \If{$\neg falhou$}
+      \State \Return $(P_m, WS_m)$
+    \EndIf
+  \EndFor
+\EndIf
+\State \Return $\mathrm{Falha}$
+\end{algorithmic}
+\end{algorithm}
 
 % =============================================================================
 \chapter{Ambiente Experimental GridWorld}
@@ -160,18 +171,15 @@ arquitetura do baseline HTN.
 O ambiente é modelado como um sistema de transição determinístico:
 
 \begin{equation}
-\mathcal{E} = \langle S,A,T,s_0,G \rangle.
+\mathcal{E} = \langle S,A,T,R,s_0,G \rangle.
 \end{equation}
 
-Nessa formulação:
-
-\begin{itemize}
-\item $S$ é o conjunto de estados possíveis;
-\item $A$ é o conjunto de ações;
-\item $T$ é a função de transição;
-\item $s_0$ é o estado inicial;
-\item $G$ é a condição de objetivo.
-\end{itemize}
+Nessa formulação, $S$ é o conjunto de estados possíveis, $A$ é o conjunto de
+ações discretas, $T$ é a função de transição, $R$ é a recompensa, $s_0$ é o
+estado inicial e $G$ é a condição de objetivo. Na versão atual, $R=1$ somente
+quando o objetivo é atingido e $R=0$ nos demais passos. O ambiente não fornece
+recompensa vetorial nesta etapa; seu papel é validar o ciclo HTN em um cenário
+controlado.
 
 \section{Estado do ambiente}
 
@@ -191,37 +199,48 @@ done
 \rangle.
 \end{equation}
 
-Nessa formulação:
-
-\begin{itemize}
-\item $p_a$ é a posição do agente;
-\item $p_k$ é a posição da chave;
-\item $p_d$ é a posição da porta;
-\item $p_g$ é a posição do objetivo;
-\item $O$ é o conjunto de obstáculos;
-\item $hasKey$ indica se o agente possui a chave;
-\item $doorOpen$ indica se a porta está aberta;
-\item $done$ indica se o episódio foi concluído.
-\end{itemize}
+Nessa representação, $p_a$, $p_k$, $p_d$ e $p_g$ são, respectivamente, as
+posições do agente, da chave, da porta e do objetivo; $O$ é o conjunto de
+obstáculos; e $hasKey$, $doorOpen$ e $done$ registram a posse da chave, a
+abertura da porta e o término do episódio. A observação retornada pelo ambiente
+preserva esses fatos concretos; o sensor os traduz para os predicados usados
+pelo domínio HTN.
 
 \section{Ações do ambiente}
 
-O ambiente possui seis ações discretas:
+O espaço de ações é discreto, com seis operações: mover para cima, direita,
+baixo ou esquerda, pegar a chave e abrir a porta. Movimentos que saem do grid,
+atingem um obstáculo ou tentam entrar no objetivo com a porta fechada não
+alteram a posição. A coleta da chave só é efetiva sobre sua célula, e a abertura
+da porta exige que o agente esteja em sua célula e já possua a chave.
 
-\begin{itemize}
-\item mover para cima;
-\item mover para a direita;
-\item mover para baixo;
-\item mover para a esquerda;
-\item pegar chave;
-\item abrir porta.
-\end{itemize}
+O Algoritmo \ref{alg:gridworld-step} descreve o método \texttt{step}, que
+processa uma ação, atualiza o término do episódio e retorna o contrato de cinco
+valores do Gymnasium.
 
-Movimentos inválidos não alteram a posição do agente.
-A ação de pegar chave só tem sucesso quando o agente está na posição
-da chave.
-A ação de abrir porta só tem sucesso quando o agente está na porta e
-possui a chave.
+\begin{algorithm}[H]
+\caption{Método \texttt{step} do ambiente GridWorld}
+\label{alg:gridworld-step}
+\begin{algorithmic}[1]
+\Require ação discreta $a$
+\Ensure observação $o$, recompensa $r$, término $terminated$, truncamento $truncated$, informação $info$
+\If{$done$}
+  \State \Return $(\mathrm{Obs}(), 0, \mathrm{verdadeiro}, \mathrm{falso}, \{\})$
+\EndIf
+\If{$a \in \{\mathrm{cima},\mathrm{direita},\mathrm{baixo},\mathrm{esquerda}\}$}
+  \State \Call{TentarMover}{$a$}
+\ElsIf{$a = \mathrm{pegarChave}$}
+  \State \Call{TentarPegarChave}{}
+\ElsIf{$a = \mathrm{abrirPorta}$}
+  \State \Call{TentarAbrirPorta}{}
+\Else
+  \State sinalizar ação inválida
+\EndIf
+\State $done \gets (p_a=p_g) \land doorOpen$
+\State $r \gets 1$ se $done$; caso contrário, $r \gets 0$
+\State \Return $(\mathrm{Obs}(), r, done, \mathrm{falso}, \{\})$
+\end{algorithmic}
+\end{algorithm}
 
 \section{Objetivo do ambiente}
 
@@ -236,140 +255,73 @@ doorOpen = true.
 
 \section{Configuração}
 
-O ambiente suporta configuração de:
+\texttt{GridWorldConfig} define largura, altura, posições do agente, chave,
+porta e objetivo, obstáculos fixos e aleatórios, além dos estados iniciais de
+posse da chave e abertura da porta. Uma posição definida como \texttt{None} é
+sorteada no reinício do episódio sem sobrepor entidades especiais ou obstáculos.
+Assim, posições fixas permitem testes determinísticos, enquanto uma
+\textit{seed} torna cenários aleatórios reproduzíveis.
 
-\begin{itemize}
-\item largura;
-\item altura;
-\item posição inicial do agente;
-\item posição da chave;
-\item posição da porta;
-\item posição do objetivo;
-\item obstáculos fixos;
-\item obstáculos aleatórios;
-\item estado inicial da chave;
-\item estado inicial da porta.
-\end{itemize}
+O Algoritmo \ref{alg:gridworld-reset} descreve o método \texttt{reset}.
+Ele resolve o layout de cada episódio, restaura os estados iniciais configurados
+e produz a primeira observação.
 
-Essa configuração permite criar cenários determinísticos para teste e, no
-futuro, cenários randomizados com \textit{seed} para reprodutibilidade.
+\begin{algorithm}[H]
+\caption{Método \texttt{reset} do ambiente GridWorld}
+\label{alg:gridworld-reset}
+\begin{algorithmic}[1]
+\Require semente opcional $seed$
+\Ensure observação inicial $o$ e informação $info$
+\State inicializar o gerador aleatório com $seed$
+\State resolver posições fixas e aleatórias; adicionar obstáculos aleatórios
+\State $p_a \gets p_{\mathrm{inicio}}$
+\State $hasKey \gets initialHasKey$; $doorOpen \gets initialDoorOpen$
+\State $done \gets (p_a=p_g) \land doorOpen$
+\State \Return $(\mathrm{Obs}(), \{\})$
+\end{algorithmic}
+\end{algorithm}
 
 % =============================================================================
 \chapter{Domínio HTN do GridWorld}
 % =============================================================================
 
-\section{Tarefa raiz}
+\section{Especificação do domínio HTN}
 
-A tarefa raiz do domínio é escapar do grid.
-No código, essa tarefa é representada por \texttt{escape\_grid}.
-Conceitualmente, ela significa atingir o objetivo final após satisfazer
-as condições necessárias.
+O capítulo anterior descreve a dinâmica concreta do GridWorld; este capítulo
+especifica como essa dinâmica é abstraída em tarefas e métodos HTN. A tarefa
+raiz é \texttt{escape\_grid}. As folhas primitivas são
+\texttt{go\_to\_key}, \texttt{pickup\_key}, \texttt{go\_to\_door},
+\texttt{open\_door} e \texttt{go\_to\_goal}; elas associam uma ação concreta
+a pré-condições e efeitos simbólicos. Em particular, as tarefas de navegação
+atualizam \texttt{agent\_x}, \texttt{agent\_y} e os predicados
+\texttt{at\_key}, \texttt{at\_door} ou \texttt{at\_goal};
+\texttt{pickup\_key} produz \texttt{has\_key=true};
+\texttt{open\_door} produz \texttt{door\_open=true}; e
+\texttt{go\_to\_goal} produz \texttt{done=true}.
 
-\section{Tarefas primitivas}
+As tarefas compostas \texttt{ensure\_has\_key} e
+\texttt{ensure\_door\_open} expressam, respectivamente, a obtenção da chave e
+a abertura da porta. Cada uma tem um método vazio quando a condição já está
+satisfeita, evitando ações artificiais. A tarefa \texttt{escape\_grid} leva
+diretamente ao objetivo quando a porta está aberta; caso contrário, primeiro
+garante a chave e a abertura da porta. A Figura
+\ref{fig:dominio-htn-gridworld} sintetiza essa construção a partir do layout efetivo
+do ambiente.
 
-As principais tarefas primitivas são:
+\input{figures/gridworld_htn_domain}
 
-\begin{itemize}
-\item \texttt{go\_to\_key}: navegar até a chave;
-\item \texttt{pickup\_key}: coletar a chave;
-\item \texttt{go\_to\_door}: navegar até a porta;
-\item \texttt{open\_door}: abrir a porta;
-\item \texttt{go\_to\_goal}: navegar até o objetivo.
-\end{itemize}
-
-\section{Tarefas compostas}
-
-As principais tarefas compostas são:
-
-\begin{itemize}
-\item \texttt{ensure\_has\_key};
-\item \texttt{ensure\_door\_open};
-\item \texttt{escape\_grid}.
-\end{itemize}
-
-\section{Métodos para garantir a chave}
-
-A tarefa \texttt{ensure\_has\_key} pode ser resolvida de duas formas.
-Se o agente já possui a chave, nenhuma subtarefa é necessária:
-
+Por exemplo, quando o agente não possui a chave e a porta está fechada, a
+decomposição produz o plano
 \begin{equation}
-hasKey = true
-\Rightarrow
-subtasks = \langle \rangle.
+\begin{aligned}
+\pi = \langle {} &\texttt{go\_to\_key},\texttt{pickup\_key},
+\texttt{go\_to\_door},\\
+&\texttt{open\_door},\texttt{go\_to\_goal} \rangle.
+\end{aligned}
 \end{equation}
-
-Se o agente não possui a chave, é necessário ir até a chave e coletá-la:
-
-\begin{equation}
-hasKey = false
-\Rightarrow
-subtasks =
-\langle goToKey, pickupKey \rangle.
-\end{equation}
-
-\section{Métodos para garantir a porta aberta}
-
-A tarefa \texttt{ensure\_door\_open} também possui dois casos.
-Se a porta já está aberta, nenhuma subtarefa é necessária:
-
-\begin{equation}
-doorOpen = true
-\Rightarrow
-subtasks = \langle \rangle.
-\end{equation}
-
-Se a porta está fechada e o agente possui a chave, o agente deve ir até a
-porta e abri-la:
-
-\begin{equation}
-doorOpen = false
-\Rightarrow
-subtasks =
-\langle goToDoor, openDoor \rangle.
-\end{equation}
-
-\section{Métodos para escapar do grid}
-
-Se a porta já está aberta, a tarefa de escapar pode ser decomposta diretamente
-em ir ao objetivo:
-
-\begin{equation}
-doorOpen = true
-\Rightarrow
-subtasks =
-\langle goToGoal \rangle.
-\end{equation}
-
-Se a porta está fechada, é necessário garantir a chave, garantir a porta
-aberta e ir ao objetivo:
-
-\begin{equation}
-doorOpen = false
-\Rightarrow
-subtasks =
-\langle ensureHasKey, ensureDoorOpen, goToGoal \rangle.
-\end{equation}
-
-\section{Plano esperado}
-
-Em um cenário inicial no qual o agente não possui a chave e a porta está
-fechada, espera-se um plano equivalente a:
-
-\begin{equation}
-\pi =
-\langle
-goToKey,
-pickupKey,
-goToDoor,
-openDoor,
-goToGoal
-\rangle.
-\end{equation}
-
-Esse plano pode ser reduzido automaticamente quando certas condições já estão
-satisfeitas.
-Por exemplo, se a porta já estiver aberta, o plano pode conter apenas a navegação
-até o objetivo.
+Se a porta já estiver aberta, o método correspondente reduz o plano à navegação
+até o objetivo. Essa redução é consequência das pré-condições e dos métodos
+vazios do domínio, e não de uma regra especial no ambiente.
 
 % =============================================================================
 \chapter{Execução por Agente}
@@ -378,64 +330,62 @@ até o objetivo.
 \section{Separação entre planejamento e execução}
 
 Uma decisão arquitetural importante foi separar o planner do agente executor.
-O planner constrói planos.
-O agente executa planos.
-
-O planner é responsável por:
-
-\begin{itemize}
-\item decompor tarefas;
-\item verificar pré-condições;
-\item aplicar efeitos simulados;
-\item retornar uma sequência de tarefas primitivas.
-\end{itemize}
-
-O agente é responsável por:
-
-\begin{itemize}
-\item manter o plano atual;
-\item solicitar plano novo quando necessário;
-\item executar a tarefa atual;
-\item lidar com ações em andamento;
-\item remover tarefas concluídas;
-\item limpar planos que falham;
-\item validar se o plano restante ainda é aplicável.
-\end{itemize}
+O planner decompõe tarefas, verifica pré-condições, aplica efeitos apenas ao
+estado simulado e retorna folhas primitivas. O agente, por sua vez, mantém o
+plano em execução, solicita um novo plano quando necessário, executa a tarefa
+corrente e valida o plano remanescente após mudanças observadas no mundo.
 
 \section{Execução por ticks}
 
 A execução ocorre em ciclos discretos chamados ticks.
-Em cada tick, o agente executa uma etapa da tarefa atual.
-Isso é necessário porque algumas ações, como navegação, podem durar vários ticks.
+Em cada tick, o agente pode reconstruir o plano, executar uma etapa da tarefa
+corrente e atualizar o plano pendente. Isso é necessário porque ações de
+navegação podem durar vários ticks. O Algoritmo \ref{alg:agent-tick} descreve
+o método \texttt{tick} atualmente implementado.
+
+\begin{algorithm}[H]
+\caption{Método \texttt{tick} do agente HTN}
+\label{alg:agent-tick}
+\begin{algorithmic}[1]
+\Require mundo de execução $W$
+\Ensure resultado do tick $R$
+\State $replanned \gets \mathrm{falso}$; $planned \gets \langle\rangle$
+\If{\Call{DeveReplanejar}{}}
+  \State $plan \gets \Call{build\_plan}{}$; $worldStateChanged \gets \mathrm{falso}$
+  \State $replanned \gets \mathrm{verdadeiro}$; $planned \gets \Call{NomesDoPlano}{}$
+  \If{$plan=\langle\rangle$}
+    \State \Return resultado sem tarefa e mensagem ``nenhum plano válido''
+  \EndIf
+\EndIf
+\State $\tau \gets plan[0]$
+\If{$\tau$ não é primitiva}
+  \State remover $\tau$ do plano; \Return resultado de tarefa ignorada
+\EndIf
+\State $status \gets \Call{Executar}{\tau.\mathrm{action},W}$
+\If{$status=\mathrm{SUCCESS}$}
+  \State remover $\tau$ do plano
+\ElsIf{$status=\mathrm{FAILURE}$}
+  \State $plan \gets \langle\rangle$
+\ElsIf{$status \neq \mathrm{RUNNING}$}
+  \State sinalizar estado de ação desconhecido
+\EndIf
+\State \Return $(\tau.\mathrm{name},status,replanned,planned,\Call{NomesDoPlano}{})$
+\end{algorithmic}
+\end{algorithm}
 
 \section{Status das ações}
 
-Cada ação retorna um status:
-
-\begin{itemize}
-\item \texttt{RUNNING}, quando ainda está em execução;
-\item \texttt{SUCCESS}, quando terminou com sucesso;
-\item \texttt{FAILURE}, quando falhou.
-\end{itemize}
-
-A navegação até uma posição alvo normalmente retorna \texttt{RUNNING} até o
-agente alcançar o destino.
-Ao chegar, retorna \texttt{SUCCESS}.
-Se não houver caminho, retorna \texttt{FAILURE}.
+Cada ação retorna \texttt{RUNNING} enquanto permanece em execução,
+\texttt{SUCCESS} quando conclui a tarefa ou \texttt{FAILURE} quando não pode
+concluí-la. Na navegação, por exemplo, o status permanece \texttt{RUNNING} até
+o agente alcançar o destino; a ausência de rota resulta em \texttt{FAILURE}.
 
 \section{Resultado de um tick}
 
-O resultado de um tick registra informações úteis para depuração e análise,
-como:
-
-\begin{itemize}
-\item tarefa executada;
-\item status retornado;
-\item se houve replanejamento;
-\item plano gerado;
-\item plano restante;
-\item mensagem de execução.
-\end{itemize}
+O objeto \texttt{AgentTickResult} registra a tarefa executada, o status
+retornado, a ocorrência de replanejamento, os nomes das tarefas do plano
+gerado e do plano restante, além de uma mensagem opcional. Essas informações
+permitem depurar e analisar o ciclo sem acoplar o agente ao visualizador.
 
 % =============================================================================
 \chapter{Sensores e Replanejamento}
@@ -457,40 +407,21 @@ pelo sensor.
 
 \section{Sensor do GridWorld}
 
-O sensor do GridWorld atualiza fatos simbólicos como:
-
-\begin{itemize}
-\item posição do agente;
-\item posição da chave;
-\item posição da porta;
-\item posição do objetivo;
-\item se o agente possui a chave;
-\item se a porta está aberta;
-\item se o agente está na chave;
-\item se o agente está na porta;
-\item se o agente está no objetivo;
-\item se o episódio terminou.
-\end{itemize}
+O \texttt{GridWorldSensor} atualiza no \texttt{WorldState} as coordenadas do
+agente, da chave, da porta e do objetivo, os fatos \texttt{has\_key},
+\texttt{door\_open} e \texttt{done}, e os predicados derivados
+\texttt{at\_key}, \texttt{at\_door} e \texttt{at\_goal}. Dessa forma, o
+domínio HTN recebe fatos simbólicos sem depender da representação concreta do
+ambiente Gymnasium.
 
 \section{Delegate de mudança de estado}
 
-Depois que os sensores atualizam o estado, um mecanismo de notificação informa
-ao agente que o estado simbólico mudou.
-O agente então atualiza sua cópia de estado e encaminha a mudança ao planner.
+Depois que os sensores atualizam o estado, o \texttt{SensorSystem} notifica os
+assinantes por meio de um \textit{delegate}. O agente copia o estado observado,
+atualiza a cópia do planner e marca que houve mudança de mundo, como mostrado
+na Figura \ref{fig:sensores-replanejamento}.
 
-O fluxo é:
-
-\begin{equation}
-ambiente
-\rightarrow
-sensores
-\rightarrow
-estado\ simbolico
-\rightarrow
-agente
-\rightarrow
-planner.
-\end{equation}
+\input{figures/sensor_replanning_flow}
 
 \section{Validação preguiçosa}
 
@@ -505,19 +436,43 @@ Dado um plano restante:
 \langle a_i,a_{i+1},\dots,a_n \rangle,
 \end{equation}
 
-o agente simula as tarefas restantes a partir do estado atual.
-Se todas as pré-condições forem satisfeitas, o plano continua válido.
-Caso contrário, o agente replana.
+o agente simula as tarefas restantes a partir do estado atual. Se todas as
+pré-condições forem satisfeitas, o plano continua válido. O Algoritmo
+\ref{alg:validar-plano} explicita essa validação, incluindo os efeitos de cada
+tarefa primitiva sobre a cópia de estado.
+
+\begin{algorithm}[H]
+\caption{Método \texttt{\_is\_plan\_still\_valid}}
+\label{alg:validar-plano}
+\begin{algorithmic}[1]
+\Require plano restante $\pi_r$, estado observado $WS$
+\Ensure \texttt{verdadeiro} se $\pi_r$ permanece executável
+\State $WS' \gets \mathrm{Copia}(WS)$
+\ForAll{$\tau \in \pi_r$}
+  \If{$\tau$ não é primitiva}
+    \State \textbf{continue}
+  \EndIf
+  \If{$\neg\mathrm{PreCondicoesSatisfeitas}(\tau,WS')$}
+    \State \Return \texttt{falso}
+  \EndIf
+  \State $WS' \gets \mathrm{AplicarEfeitos}(\tau,WS')$
+\EndFor
+\State \Return \texttt{verdadeiro}
+\end{algorithmic}
+\end{algorithm}
 
 \section{Condição de replanejamento}
 
-O replanejamento ocorre quando não existe plano, quando uma ação falha ou
-quando alguma tarefa restante deixa de ser aplicável:
+O replanejamento ocorre quando não existe plano ou quando uma mudança observada
+invalida o plano remanescente. Uma falha de ação limpa o plano e, por isso,
+provoca replanejamento no tick seguinte. Formalmente:
 
 \begin{equation}
-\exists a_j \in \pi_r
-\quad
-s_j \not\models pre(a_j).
+\mathrm{Replanejar}
+\iff
+(\pi_r=\langle\rangle)
+\lor
+(\mathrm{mudancaDeMundo}\land\neg\mathrm{Valido}(\pi_r,WS)).
 \end{equation}
 
 
@@ -556,17 +511,47 @@ conjunto de obstáculos.
 A implementação atual usa busca em largura, ou BFS. Como as arestas do grid
 possuem custo uniforme, BFS encontra o menor caminho em número de passos.
 
-A ação de navegação funciona assim:
+O Algoritmo \ref{alg:bfs-grid} corresponde ao método
+\texttt{GridPathfinder.find\_path}. Ele expande vizinhos ortogonais na ordem
+cima, direita, baixo e esquerda, ignora células bloqueadas ou já visitadas e
+reconstrói o caminho a partir do mapa de predecessores.
 
-\begin{enumerate}
-\item lê a posição atual do agente;
-\item calcula um caminho até o alvo;
-\item executa apenas o próximo passo;
-\item retorna o status da ação.
-\end{enumerate}
+\begin{algorithm}[H]
+\caption{Método \texttt{find\_path} por busca em largura}
+\label{alg:bfs-grid}
+\begin{algorithmic}[1]
+\Require início $s$, objetivo $g$, contexto $(largura,altura,bloqueadas)$
+\Ensure caminho de $s$ até $g$ ou lista vazia
+\If{$s=g$}
+  \State \Return $[s]$
+\EndIf
+\State $fronteira \gets \mathrm{Fila}([s])$; $predecessor[s] \gets \emptyset$
+\While{$fronteira$ não está vazia}
+  \State $atual \gets \Call{RemoverInicio}{fronteira}$
+  \If{$atual=g$}
+    \State \textbf{break}
+  \EndIf
+  \ForAll{$vizinho$ ortogonal válido de $atual$}
+    \If{$vizinho \in bloqueadas$ \textbf{ ou } $vizinho \in predecessor$}
+      \State \textbf{continue}
+    \EndIf
+    \State $predecessor[vizinho] \gets atual$
+    \State \Call{InserirFim}{fronteira,vizinho}
+  \EndFor
+\EndWhile
+\If{$g \notin predecessor$}
+  \State \Return $[\ ]$
+\EndIf
+\State \Return \Call{ReconstruirCaminho}{$predecessor,g$}
+\end{algorithmic}
+\end{algorithm}
 
-Como o caminho é recalculado a cada tick, a navegação é reativa ao estado
-atual do ambiente.
+A ação \texttt{NavigateToPositionAction} consulta esse caminho a cada tick,
+executa apenas o próximo movimento por meio de \texttt{env.step} e retorna
+\texttt{SUCCESS} ao alcançar o alvo. Se o caminho tiver menos de duas células
+antes de alcançar o alvo, a ação retorna \texttt{FAILURE}; caso contrário,
+retorna \texttt{RUNNING}. A recomputação do caminho torna a navegação reativa
+ao estado corrente do ambiente.
 
 % =============================================================================
 \chapter{Evolução para o Experimento Multiobjetivo}

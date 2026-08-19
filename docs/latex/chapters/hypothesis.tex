@@ -7,7 +7,9 @@
 A hipótese principal é que uma política MORL condicionada por preferências
 pode selecionar métodos de decomposição HTN de forma mais adaptativa que
 prioridades estáticas ou heurísticas de pesos fixos, mantendo a validade
-semântica garantida pelo HTN\@.
+semântica da \emph{seleção inicial} garantida pelo HTN\@. A validade
+das tarefas ainda pendentes durante a execução depende de observação
+do mundo e de replanejamento quando o estado se altera.
 
 \section{Hipóteses secundárias}
 
@@ -24,7 +26,9 @@ observadas diretamente no treinamento.
 \item[Invariante arquitetural --- validade semântica:] como o HTN filtra os
 métodos antes da decisão MORL, a arquitetura completa não selecionará métodos
 que violem pré-condições ou restrições definidas pelo domínio.
-Essa é uma propriedade verificável da interface, e não uma hipótese estatística.
+Essa é uma propriedade verificável da interface no ponto de decisão, e não
+uma hipótese estatística; ela não elimina a necessidade de revalidar o plano
+quando ocorrem eventos exógenos durante sua execução.
 
 \item[H3 --- adequação da frequência e cardinalidade decisórias:] restringir o
 MORL aos métodos HTN aplicáveis pode reduzir a frequência e a cardinalidade
@@ -37,7 +41,8 @@ semanticamente significativas.
 
 \begin{description}
 \item[Validade semântica:] métodos que violam pré-condições ou restrições do
-domínio são removidos antes da decisão MORL.
+domínio são removidos antes da decisão MORL no estado observado; alterações
+posteriores do mundo são tratadas por replanejamento.
 \item[Rastreabilidade e auditabilidade:] cada escolha registra a tarefa
 composta, o estado simbólico relevante, os métodos aplicáveis e rejeitados, o
 vetor de preferências, os valores multiobjetivo estimados, a utilidade e o
@@ -97,6 +102,35 @@ Uma explicação de decisão poderá assumir a forma: o agente selecionou
 \texttt{Protect\-Ally} porque o método era aplicável e apresentou a maior
 utilidade estimada sob um vetor no qual proteção do aliado e sobrevivência
 possuíam os maiores pesos.
+
+\section{Arquitetura híbrida proposta}
+
+A integração é definida pelo seguinte fluxo:
+
+\begin{align}
+(C_t,WS_t)
+&\longrightarrow \text{filtragem HTN}
+\longrightarrow \mathcal{M}_{\mathrm{valid}}(C_t,WS_t),\\
+(\text{jogo},\text{diretor},\text{perfil},\text{regra},C_t,WS_t)
+&\longrightarrow \text{fonte de preferências}
+\longrightarrow \mathbf{w}_t,\\
+(\mathcal{M}_{\mathrm{valid}},C_t,WS_t,\mathbf{w}_t)
+&\longrightarrow \text{MORL}
+\longrightarrow M_t^*.
+\end{align}
+
+A fonte de preferências é obrigatória como interface de fornecimento de
+$\mathbf{w}_t$; codificadores relacionais ou aprendidos são implementações
+opcionais dessa interface.
+
+O método selecionado é decomposto em subtarefas, e as tarefas primitivas são
+executadas por controladores tradicionais.
+Após a execução, o ambiente produz um novo estado e um vetor de recompensas,
+permitindo atualizar ou avaliar a política.
+Essa divisão torna explícitas quatro responsabilidades: validade semântica,
+preferência comportamental, utilidade aprendida e execução de baixo nível.
+
+\input{figures/htn_morl_architecture}
 
 \section{Ciclo online}
 

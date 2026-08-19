@@ -5,21 +5,13 @@
 \section{Componentes disponíveis}
 
 Até agosto de 2026, a arquitetura completa ainda não está implementada. O
-baseline disponível contém:
-
-\begin{itemize}
-\item representação simbólica do estado;
-\item pré-condições e efeitos;
-\item tarefas primitivas e compostas;
-\item métodos de decomposição e domínio HTN;
-\item planner recursivo com backtracking;
-\item agente executor e execução por ticks;
-\item sensores e atualização do estado;
-\item replanejamento inicial;
-\item abstração de pathfinding e BFS para GridWorld;
-\item ambiente GridWorld e renderer em terminal;
-\item documentação técnica inicial.
-\end{itemize}
+baseline disponível já reúne a representação simbólica do estado,
+pré-condições, efeitos, tarefas primitivas e compostas, métodos de
+decomposição, domínio HTN e um \textit{planner} recursivo com \textit{backtracking}.
+Ele também inclui o agente executor orientado a \textit{ticks}, sensores para
+atualização do estado, replanejamento inicial, uma abstração de \textit{pathfinding}
+com BFS para o GridWorld, visualizador em terminal e documentação técnica
+inicial.
 
 \section{Interpretação correta do estágio atual}
 
@@ -35,21 +27,15 @@ validação da hipótese completa.
 
 \section{Lacunas para a nova formulação}
 
-As principais lacunas são:
-
-\begin{itemize}
-\item alterar o planner para expor o conjunto de métodos aplicáveis;
-\item definir identificadores e observações estáveis para tarefas e métodos;
-\item implementar perfis fixos e regras explícitas para $\mathbf{w}_t$;
-\item modelar e avaliar o codificador relacional de preferências;
-\item definir objetivos e recompensas vetoriais;
-\item definir o horizonte de crédito associado a cada escolha hierárquica;
-\item implementar treinamento e inferência MORL com máscara de validade;
-\item criar baselines de ordem fixa, prioridade estática e utilidade manual;
-\item adicionar logs completos de decisão;
-\item implementar testes unitários, integração e experimentos automatizados;
-\item estabelecer protocolo estatístico com cenários e sementes repetidas.
-\end{itemize}
+Para a nova formulação, o \textit{planner} deverá expor os métodos aplicáveis
+com identificadores e observações estáveis. Também será necessário implementar
+perfis fixos e regras explícitas para $\mathbf{w}_t$, modelar o codificador
+relacional de preferências, definir objetivos, recompensas vetoriais e o
+horizonte de crédito de cada escolha hierárquica. A etapa de aprendizado inclui
+treinamento e inferência MORL com máscara de validade, comparados a baselines de
+ordem fixa, prioridade estática e utilidade manual. Por fim, logs completos de
+decisão, testes unitários e de integração, experimentos automatizados e um
+protocolo estatístico com cenários e sementes repetidas completarão a avaliação.
 
 \section{Compatibilidade do baseline com a proposta}
 

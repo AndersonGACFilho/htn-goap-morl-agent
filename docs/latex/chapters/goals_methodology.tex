@@ -46,6 +46,14 @@ preferência comportamental, utilidade aprendida e execução de baixo nível.
 Serão definidos o estado, as tarefas, os métodos, a função de aplicabilidade, o
 vetor de recompensas, o vetor de preferências, a política condicionada e os
 critérios de término de uma decisão hierárquica.
+Em cada ponto de decisão, a entrada da política será especificada como
+$s_j=(WS_j,C_j,\phi(o_j),\mathbf{m}_j,\mathbf{w}_j)$, em que $WS_j$ é o
+estado simbólico, $C_j$ é a tarefa composta, $\phi(o_j)$ é um vetor de
+observação de dimensão fixa, $\mathbf{m}_j$ é a máscara de métodos e
+$\mathbf{w}_j$ é a preferência normalizada. No cenário inicial,
+$\phi$ será uma codificação tabular ou vetorial documentada; representações
+com cardinalidade variável, como grafos, serão tratadas como extensão e
+exigirão codificador relacional explicitamente avaliado.
 
 \section{Ambiente e dados}
 
@@ -94,6 +102,9 @@ completos para aprender os valores vetoriais das alternativas; durante a execuç
  HTN, seguida da decomposição apenas do método escolhido.
 O treinamento amostrará estados iniciais, configurações de cenário, eventos e
 vetores de preferência.
+O protocolo combinará um conjunto finito de perfis interpretáveis com
+amostras de uma distribuição de Dirichlet sobre o simplex; seus parâmetros,
+sementes e vetores reservados para teste serão fixados antes do treinamento.
 O orçamento de treinamento, os hiperparâmetros e as escalas de recompensa serão
 controlados e reportados.
 
@@ -101,11 +112,21 @@ A atribuição de crédito será definida no nível da decisão hierárquica.
 O retorno poderá acumular recompensas durante a execução das subtarefas produzidas
 pelo método até a próxima escolha HTN, término da decomposição ou interrupção por
 replanejamento.
+Cada transição registrada conterá $(s_j,M_j,\mathbf{R}_j,k_j,s_{j+1},z_j)$,
+em que $k_j$ é o número de passos primitivos e $z_j$ identifica o motivo de
+término. Atualizações semi-MDP aplicarão o desconto $\gamma^{k_j}$; o
+repositório de experiências preservará $k_j$ e o traço primitivo para permitir
+comparar retornos de $n$ passos e diferentes regras de truncamento sob durações
+variáveis.
 
 Se a decomposição do método escolhido falhar, ele será removido temporariamente
 da máscara e o MORL fará nova seleção entre os métodos restantes. Esse
 \emph{fallback} é uma recuperação excepcional, e não a busca normal sobre todos
-os métodos.
+os métodos. Essa falha também gerará uma transição explícita, sem passos
+primitivos, marcada como inviabilidade de decomposição. Seu custo de planejamento
+será registrado e, se usado no treinamento, entrará como componente negativo
+documentado da recompensa vetorial; desse modo, a política recebe crédito pela
+falha sem confundi-la com uma transição do ambiente.
 Mudanças do mundo durante a execução exigem replanejamento a partir do estado
 observado.
 

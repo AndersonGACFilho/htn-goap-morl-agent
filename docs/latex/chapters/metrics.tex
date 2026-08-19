@@ -4,12 +4,9 @@
 
 \section{Desempenho da tarefa}
 
-\begin{itemize}
-\item taxa de sucesso da missão e sobrevivência;
-\item conclusão de objetivos e sobrevivência de aliados;
-\item dano recebido e recursos consumidos;
-\item duração do episódio e número de replanejamentos.
-\end{itemize}
+A avaliação da tarefa reportará taxa de sucesso da missão, sobrevivência,
+conclusão de objetivos, sobrevivência de aliados, dano recebido, recursos
+consumidos, duração do episódio e número de replanejamentos.
 
 \section{Desempenho multiobjetivo}
 
@@ -17,70 +14,59 @@ As métricas serão selecionadas conforme as hipóteses do cenário e reportadas
 com suas referências, considerando propostas clássicas de avaliação empírica e
 o protocolo moderno de benchmarking MORL \cite{vamplew2011,felten2023toolkit}.
 
-\begin{itemize}
-\item retorno vetorial acumulado;
-\item utilidade escalarizada sob diferentes preferências;
-\item hipervolume e cobertura de soluções somente quando houver conjunto de soluções
-e ponto de referência explicitamente definidos;
-\item utilidade esperada sobre uma distribuição de preferências;
-\item \textit{Maximum Utility Loss} (MUL), quando houver solução de referência;
-\item \textit{Inverted Generational Distance} (IGD), apenas em domínios com
-fronteira de Pareto de referência conhecida;
-\item desempenho sob vetores de preferência não vistos.
-\end{itemize}
+Serão reportados o retorno vetorial acumulado, a utilidade escalarizada sob
+diferentes preferências e o desempenho sob vetores de preferência não vistos.
+Hipervolume e cobertura serão usados somente quando o conjunto de soluções e o
+ponto de referência estiverem explicitamente definidos. A utilidade esperada
+exigirá uma distribuição de preferências definida; \textit{Maximum Utility Loss}
+(MUL) exigirá solução de referência; e \textit{Inverted Generational Distance}
+(IGD), uma fronteira de Pareto de referência conhecida.
 
 Para utilidade linear, a utilidade esperada será reportada apenas quando a
 distribuição sobre preferências estiver explicitamente definida; métricas de
 hipervolume não substituem a avaliação sob preferências condicionadas.
+Para uma política fixa, pesos fixos e utilidade linear, SER e ESR coincidem
+pela linearidade da esperança. Essa equivalência não justifica modelar
+aversão a risco, restrições por trajetória ou preferências não lineares com
+uma escalarização linear; tais casos exigirão formulação e métricas próprias.
 
 \section{Adaptação e generalização}
 
-\begin{itemize}
-\item desempenho após mudanças contextuais;
-\item latência de adaptação após alteração de preferências;
-\item frequência e adequação das mudanças de método;
-\item recuperação após eventos inesperados;
-\item desempenho em cenários e combinações não observados no treinamento.
-\end{itemize}
+Serão observados o desempenho após mudanças contextuais, a latência de
+adaptação após alterações de preferência, a frequência e a adequação das
+mudanças de método, a recuperação diante de eventos inesperados e o desempenho
+em cenários e combinações não observados no treinamento.
 
 \section{Diversidade e coerência comportamental}
 
-\begin{itemize}
-\item distribuição dos métodos HTN selecionados;
-\item número de estratégias distintas observadas;
-\item variação entre personalidades e vetores de preferência;
-\item consistência sob estados e preferências equivalentes;
-\item taxa de oscilação ou troca prematura de estratégia.
-\end{itemize}
+A análise registrará a distribuição dos métodos HTN selecionados, o número de
+estratégias distintas, a variação entre personalidades e vetores de preferência,
+a consistência sob estados e preferências equivalentes e a taxa de oscilação ou
+troca prematura de estratégia.
 
 \section{Validade semântica}
+\mbox{}\par\vspace{-0.4em}
 
-\begin{itemize}
-\item taxa de seleção de método inválido;
-\item violações de pré-condições;
-\item tentativas de uso de recursos indisponíveis;
-\item violações de sequência lógica de tarefas.
-\end{itemize}
+A validade será verificada pela taxa de seleção de método inválido, pelas
+violações de pré-condições e de sequência lógica de tarefas e pelas tentativas
+de uso de recursos indisponíveis.
 
 Para a arquitetura completa, espera-se taxa de seleção inválida igual a zero,
 pois os métodos não aplicáveis são removidos antes da decisão MORL. Falhas de
-decomposição, falhas de execução e replanejamentos devem ser contabilizados
-separadamente.
+decomposição, falhas de execução, invalidações durante a execução e
+replanejamentos devem ser contabilizados separadamente; a expectativa de taxa
+zero refere-se somente ao instante em que a máscara é calculada.
 
 \section{Desempenho computacional}
 
-\begin{itemize}
-\item latência total de decisão, tempo da fonte de preferências e tempo de inferência;
-\item tempo de filtragem HTN;
-\item tempo de decomposição do método selecionado;
-\item taxa e custo de \emph{method fallback};
-\item tempo de treinamento;
-\item quantidade de métodos decompostos no caminho normal;
-\item consumo de memória;
-\item estabilidade da frequência de decisão em tempo real.
-\end{itemize}
+O custo computacional abrangerá a latência total de decisão, os tempos da fonte
+de preferências, de inferência, de filtragem HTN e de decomposição do método
+selecionado. Também serão registrados a taxa e o custo de \emph{method fallback},
+o tempo de treinamento, a quantidade de métodos decompostos no caminho normal,
+o consumo de memória e a estabilidade da frequência de decisão em tempo real.
 
 \section{Densidade de decisão}
+\mbox{}\par\vspace{-0.4em}
 
 Além de medir latência, a avaliação reportará a densidade de decisão: número de
 consultas ao seletor por episódio, por segundo simulado e por ação primitiva.
@@ -88,6 +74,7 @@ Essa métrica testa se a abstração HTN reduz a frequência efetiva de escolhas
 presumir, a priori, que seu espaço de decisão é globalmente menor.
 
 \section{Rastreabilidade e auditabilidade}
+\mbox{}\par\vspace{-0.4em}
 
 Cada decisão será registrada com tarefa composta, métodos aplicáveis, métodos
 rejeitados e pré-condições falhas, vetor de preferências, valores objetivos,
