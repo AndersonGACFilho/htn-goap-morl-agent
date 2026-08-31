@@ -2,7 +2,12 @@
 
 ## Recursive planning and backtracking
 
-`Planner.build_plan()` starts from a copy of `world_state_copy` and traverses the `Domain` root tasks. For each task, `recursive_planning()` returns either a pair of `(planned_tasks, simulated_state)` or `None`.
+`Planner.build_plan(tasks)` starts from a copy of `world_state_copy` and
+traverses the caller-provided root tasks in order. For each task,
+`recursive_planning()` returns either a pair of `(planned_tasks,
+simulated_state)` or `None`. If a later root task cannot be planned, the
+successfully planned prefix is returned; `None` is returned only when no
+primitive task can be planned.
 
 ```mermaid
 flowchart TD
@@ -12,7 +17,8 @@ flowchart TD
     C -->|yes| D[appends task and applies effects\nto a copy]
     B -->|no| E{CompoundTask?}
     E -->|yes| F[filters feasible methods]
-    F --> G[for each method, in order]
+    F --> S[MethodSelectionStrategy orders feasible methods]
+    S --> G[for each ordered method]
     G --> H[plans subtasks recursively]
     H -->|any failure| G
     H -->|success| I[returns first valid branch]
@@ -22,7 +28,29 @@ flowchart TD
 Backtracking occurs at the method level: if any subtask in a decomposition fails, that branch copy is discarded and the next feasible method is tested. The first method that produces all subtasks is chosen.
 
 !!! warning "Order matters"
-    Feasible methods are attempted in declaration order. The planner does not calculate cost or search for the shortest solution; the domain author's priority determines the choice.
+    `DepthFirstSearchStrategy` preserves declaration order and is the default
+    used by the examples. Other strategies can rank the same feasible methods,
+    but the planner still tests each ranked branch and backtracks after a
+    decomposition failure.
+
+## Method ordering
+
+Pass a `MethodSelectionStrategy` when constructing a planner. The strategy is
+called only after `CompoundTask.get_feasible_methods()` has applied the hard
+preconditions:
+
+```python
+from htn.strategy import DepthFirstSearchStrategy
+
+strategy = DepthFirstSearchStrategy()
+planner = Planner(domain, world_state, strategy)
+```
+
+`HeuristicBasedSearchStrategy` is an abstract base for lower-is-better
+application heuristics. `RLBasedSearchStrategy` stores an RL-agent reference,
+but its base `order_methods()` intentionally raises `NotImplementedError`; a
+subclass defines the policy or value-function interface. Neither strategy
+removes HTN backtracking or makes an infeasible method valid.
 
 ## Planner state
 
@@ -43,7 +71,11 @@ stateDiagram-v2
     NoPlan --> [*]
 ```
 
-Each `tick(world)` can rebuild a plan and execute one action. `AgentTickResult` returns the task name, status, whether replanning occurred, newly created plan names, the remaining plan, and an optional message.
+Each `tick(world)` can rebuild a plan and execute one action. The `Agent`
+retains a copy of its ordered root tasks and supplies that sequence for each
+replanning attempt. `AgentTickResult` returns the task name, status, whether
+replanning occurred, newly created plan names, the remaining plan, and an
+optional message.
 
 ## Lazy replanning
 

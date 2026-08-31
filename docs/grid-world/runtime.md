@@ -10,8 +10,10 @@ env.reset(seed=42)
 
 world_state = WorldState()
 domain = build_grid_world_domain(env)
-planner = Planner(domain, world_state)
-agent = Agent(planner, world_state)
+strategy = DepthFirstSearchStrategy()
+planning_tasks = domain.tasks.copy()
+planner = Planner(domain, world_state, strategy)
+agent = Agent(planner, world_state, planning_tasks)
 world = GridWorld(env, world_state, agent)
 
 sensor_system = SensorSystem()
@@ -20,7 +22,7 @@ sensor_system.on_world_state_changed.add_handler(agent.handle_world_state_change
 sensor_system.update(world, world_state)
 ```
 
-The first `update()` call is essential: it seeds `WorldState` before the `Agent` requests a plan.
+The first `update()` call is essential: it seeds `WorldState` before the `Agent` requests a plan. The example explicitly selects `DepthFirstSearchStrategy`, so feasible methods retain their domain declaration order, and copies the domain root tasks for the agent's persistent planning objective.
 
 ## Simulation loop
 

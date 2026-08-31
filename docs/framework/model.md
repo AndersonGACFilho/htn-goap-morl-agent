@@ -32,6 +32,26 @@ classDiagram
 - **`Method`** declares its own preconditions and an ordered list of subtasks. An empty list is a valid decomposition, useful for a *no-op* branch.
 - **`Domain`** contains the root tasks, evaluated by the `Planner` in declaration order.
 
+## Method-selection strategies
+
+After `CompoundTask.get_feasible_methods(world_state)` filters methods by
+preconditions, the planner delegates their exploration order to a
+`MethodSelectionStrategy`. The strategy does not bypass HTN validation: the
+planner recursively decomposes each ordered candidate and backtracks when a
+branch fails.
+
+| Strategy                       | Ordering rule                                                                     | Intended use                                                    |
+|--------------------------------|-----------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| `DepthFirstSearchStrategy`     | Keeps domain declaration order.                                                   | Deterministic baseline and examples.                            |
+| `HeuristicBasedSearchStrategy` | Sorts by an application-defined lower-is-better score.                            | Hand-crafted cost, risk, or distance heuristics.                |
+| `RLBasedSearchStrategy`        | Abstract RL-specific ordering hook; the base method raises `NotImplementedError`. | Subclass with an application-defined policy or value interface. |
+
+The RL strategy is an integration point, not a complete MORL implementation.
+It stores the agent reference but deliberately leaves the policy or
+value-function interface unspecified. A subclass must implement ordering; the
+package does not create rewards, preferences, training, or a feasible-method
+mask.
+
 ## Preconditions
 
 ```python

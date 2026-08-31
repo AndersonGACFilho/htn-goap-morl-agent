@@ -1,11 +1,21 @@
 # Proposed architecture: MORL-guided HTN method selection
 
-!!! warning "Research proposal — not implemented yet"
-    This page describes the revised research architecture. The current code implements the HTN baseline with depth-first search, ordered methods, and backtracking. MORL method selection and preference encoders are not yet part of the runtime.
+!!! warning "Research proposal — partially scaffolded"
+    The runtime now exposes `MethodSelectionStrategy`: DFS preserves domain
+    order, while the RL strategy supplies an extension point for application-
+    defined ordering. MORL training, preference encoders, vector rewards,
+    feasible-method masking, and direct single-choice selection are not yet
+    implemented.
 
 ## Problem addressed by the architecture
 
-In the baseline, the `Planner` filters methods by preconditions and tries feasible ones in declaration order. When a decomposition fails, it backtracks and tries the next one. This procedure produces the first valid plan, but does not distinguish equally applicable methods by strategic quality, cost, risk, or other objectives.
+The `Planner` filters methods by preconditions, asks a
+`MethodSelectionStrategy` to order the feasible candidates, then recursively
+tries them. When a decomposition fails, it backtracks to the next candidate.
+The DFS baseline retains declaration order. The heuristic strategy supplies an
+executable ranking pattern, and the RL strategy defines an integration point
+whose base method intentionally remains unimplemented. Neither supplies MORL
+objectives or learned preferences.
 
 The proposal preserves HTN symbolic guarantees and adds a learned decision **only** among methods that are already applicable. Learning therefore prioritizes valid alternatives rather than replacing precondition checks or allowing actions outside the domain.
 
@@ -60,9 +70,19 @@ It conveys each objective's relative importance for method selection. Changing $
 
 See [preference sources and optional weight generation](preference-weight-generation.md) for the design and evaluation of preference sources and optional encoders, and [RL with Options](../annotations/reinforcement-learning/rl-with-options.md) for the temporal-abstraction connection.
 
-## Proposed planner integration
+## Current strategy interface and proposed MORL integration
 
-Today, `CompoundTask.get_feasible_methods(world_state)` returns applicable methods and the planner tries each in declaration order. The proposed evolution is to select one method directly at each HTN decision point. The policy receives the feasible-method mask, evaluates the alternatives in one inference, and decomposes only the selected method in the normal online path:
+Today, `CompoundTask.get_feasible_methods(world_state)` returns applicable
+methods, and the planner passes them to `strategy.order_methods(methods,
+world_state)`. `RLBasedSearchStrategy` retains an RL-agent reference, but its
+base ordering method raises `NotImplementedError`; a concrete subclass must
+define the policy or value-function interface. It still relies on ordinary
+planner backtracking.
+
+The proposed evolution is to select one method directly at each HTN decision
+point. The policy receives the feasible-method mask, evaluates the alternatives
+in one inference, and decomposes only the selected method in the normal online
+path:
 
 ```mermaid
 flowchart TD
@@ -90,7 +110,7 @@ When the state and preference vector have not changed, the implementation may re
 
 ## Technical roadmap
 
-1. **HTN baseline — available:** instrument method selection, failures, replanning, and environment outcomes.
+1. **HTN strategy baseline — available:** DFS and heuristic ordering can be instrumented now; the RL ordering hook is ready for a concrete implementation and the same instrumentation.
 2. **Multi-objective environment — future:** define the components of `r` and how each episode records returns.
 3. **HTN–MORL integration — future:** introduce a preference-conditioned, single-choice selector for feasible methods, plus MORL-guided method fallback after decomposition failure.
 4. **Training — future:** learn a policy/value during a pre-deployment training phase that estimates the trade-off for each feasible method; online use is one masked inference at a decision point.

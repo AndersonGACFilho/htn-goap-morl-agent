@@ -14,7 +14,10 @@ G . D
 A agent | K key | D closed door | G goal | X obstacle
 ```
 
-The `main.py` script uses a different configuration: an 8×6 grid, two fixed barriers, five random obstacles, seed 42, and an initially open door. To demonstrate the complete **key → door → goal** sequence, set `initial_door_open=False`.
+The `main.py` script uses a different configuration: a 10×10 grid, two fixed
+barriers, ten random obstacles, seed 42, and an initially closed door. It
+explicitly uses `DepthFirstSearchStrategy` and copies the domain root tasks
+for the agent, demonstrating the complete **key → door → goal** sequence.
 
 ## Example components
 

@@ -57,24 +57,28 @@ The implemented baseline is symbolic. It includes:
 
 - `WorldState`, preconditions, effects, primitive tasks, compound tasks, and methods;
 - recursive HTN planning with method-level backtracking and simulated state;
+- pluggable ordering of feasible methods through DFS, heuristic, and
+  value-based strategies;
 - multi-tick actions, an agent tick loop, plan validation, lazy replanning, and sensors;
 - generic world, pathfinding, and Gymnasium integration abstractions; and
 - a runnable GridWorld with BFS navigation, terminal rendering, a key, door,
   obstacles, and a goal.
 
-MORL training, preference encoders, vector rewards, and learned direct method selection
-are not implemented yet. They are the next research stages, not features of the
-current runtime.
+MORL training, preference encoders, and vector rewards are not implemented
+yet. The runtime provides an RL strategy extension point, but its base class
+does not implement a policy or a value-function contract; applications must
+provide a concrete method-ordering implementation.
 
 ### Development status
 
 | Area                                           | Status    | Notes                                                                                     |
 |------------------------------------------------|-----------|-------------------------------------------------------------------------------------------|
 | HTN domain, planning, and backtracking         | Available | The planner finds a valid primitive-task plan from symbolic state.                        |
+| Method-selection strategies                    | Available | DFS and heuristic strategies are executable; the RL strategy is an extension point.      |
 | Sensors, agent tick loop, and replanning       | Available | State observations update the agent; it validates the remaining plan before replanning.   |
 | GridWorld, BFS navigation, and rendering       | Available | The executable example includes keys, doors, obstacles, and a goal.                       |
 | Vector rewards and multi-objective environment | Planned   | Required before MORL experiments.                                                         |
-| MORL direct method selection with an HTN validity mask | Planned | The central research contribution; fallback occurs only after decomposition failure. |
+| MORL direct method selection with an HTN validity mask | Planned | Requires preference-conditioned training, a validity mask, and single-choice fallback. |
 | Preference encoders                            | Planned   | Fixed profiles and rules precede relational-graph and conditional deep-learning variants. |
 
 ## GridWorld example

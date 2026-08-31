@@ -6,7 +6,7 @@ This documentation describes the **Hierarchical Task Network (HTN)** framework i
 
 - Read the [framework overview](framework/overview.md) to understand the components and complete flow.
 - See the [domain and state model](framework/model.md) to build tasks, methods, preconditions, and effects.
-- Use the [planner and agent guide](framework/planning-runtime.md) to understand backtracking, validation, and replanning.
+- Use the [planner and agent guide](framework/planning-runtime.md) to understand method-selection strategies, backtracking, validation, and replanning.
 - Follow [GridWorld](grid-world/overview.md) to run and adapt the example.
 
 ## Architecture at a glance
@@ -17,6 +17,7 @@ flowchart LR
     S -->|facts| WS[WorldState]
     WS --> P[Planner HTN]
     D[Domain] --> P
+    MS[MethodSelectionStrategy] --> P
     P -->|PrimitiveTask plan| A[Agent]
     A -->|execute| X[Action]
     X -->|step| E

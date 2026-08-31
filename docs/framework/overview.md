@@ -9,7 +9,7 @@ The `htn` module separates three responsibilities: the **Planner** builds a symb
 | Symbolic state     | Stores named facts                  | `WorldState`                       |
 | Domain             | Declares high-level tasks           | `Domain`, `CompoundTask`, `Method` |
 | Executable leaves  | Connect conditions and effects to code | `PrimitiveTask`, `Action`       |
-| Planning           | Decomposes tasks and simulates effects | `Planner`                       |
+| Planning           | Orders feasible methods, decomposes tasks, and simulates effects | `Planner`, `MethodSelectionStrategy` |
 | Execution          | Keeps the plan alive and executes ticks | `Agent`                        |
 | Observation        | Converts the concrete world into facts | `Sensor`, `SensorSystem`        |
 | Integration        | Provides execution context          | `World`, `GymWorld`, `Pathfinder`  |
@@ -31,7 +31,7 @@ sequenceDiagram
     Agent->>Planner: update_world_state(copy)
     Loop->>Agent: tick(world)
     alt no plan or invalid plan
-        Agent->>Planner: build_plan()
+        Agent->>Planner: build_plan(root tasks)
         Planner-->>Agent: PrimitiveTask[]
     end
     Agent->>Action: execute(world)
@@ -50,6 +50,7 @@ src/htn/
 ├── delegates/     # event multicast
 ├── pathfinding/   # generic Pathfinder contract
 ├── planner/       # recursive HTN decomposition
+├── strategy/      # method-ordering policies
 ├── sensors/       # observation and coordination
 ├── tasks/         # domain, tasks, methods, conditions, and effects
 ├── world/         # WorldState, World e GymWorld
@@ -63,5 +64,7 @@ src/htn/
 3. A primitive task enters the plan only if its preconditions are true.
 4. Actions return an `ActionStatus`; `RUNNING` keeps the same task at the front of the plan.
 5. Sensors observe; they do not decide or execute actions.
+6. A strategy ranks only methods already feasible in the symbolic state; the
+   planner preserves method-level backtracking after a ranked branch fails.
 
 See the [domain and state model](model.md) for the symbolic language and the [planner and agent guide](planning-runtime.md) for runtime behavior.
