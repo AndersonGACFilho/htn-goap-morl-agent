@@ -34,17 +34,19 @@ validação da hipótese completa.
 
 \section{Lacunas para a nova formulação}
 
-Para a nova formulação, o \textit{planner} deverá expor os métodos aplicáveis
-com identificadores e observações estáveis.
-Também será necessário implementar perfis fixos e regras explícitas para $\mathbf{w}_t$,
-modelar o codificador relacional de preferências, definir objetivos, recompensas
-vetoriais e o horizonte de crédito de cada escolha hierárquica.
-A etapa de aprendizado inclui treinamento e inferência MORL com máscara de
-validade, comparados a baselines de ordem fixa, prioridade estática e utilidade
-manual.
-Por fim, logs completos de decisão, testes unitários e de integração, experimentos
-automatizados e um protocolo estatístico com cenários e sementes repetidas
-completarão a avaliação.
+Para integrar MORL, a estratégia de seleção deverá transformar os métodos
+aplicáveis e o estado simbólico em entradas estáveis para a política, mantendo
+uma correspondência inequívoca entre as ações da política e os métodos candidatos.
+A integração também exige uma máscara de validade, um vetor de preferências
+$\mathbf{w}_t$, objetivos e recompensas vetoriais, além da definição do horizonte
+de crédito de cada decisão hierárquica.
+
+Perfis fixos, regras explícitas e codificadores relacionais serão avaliados como
+alternativas de representação, e não como requisitos da interface do
+\textit{planner}. Logs de decisão e testes unitários e de integração darão suporte
+à confiabilidade da implementação. Experimentos automatizados, cenários e sementes
+repetidas, baselines de ordem fixa, prioridade estática e utilidade manual, além de
+um protocolo estatístico, comporão a validação científica da proposta.
 
 \section{Compatibilidade do baseline com a proposta}
 
