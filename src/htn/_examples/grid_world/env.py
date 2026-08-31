@@ -78,8 +78,8 @@ class GridWorldEnv(gym.Env):
         """
         Initialize the GridWorld environment.
 
-        :param config: Optional GridWorld configuration. If omitted, the original
-            3x3 example layout is used.
+        Args:
+            config: Optional GridWorld configuration. If omitted, the original 3x3 example layout is used.
         """
         super().__init__()
 
@@ -128,9 +128,11 @@ class GridWorldEnv(gym.Env):
         Random positions are resolved here, not in __init__, so each reset can
         create a new layout. Passing a seed makes the layout reproducible.
 
-        :param seed: Optional random seed.
-        :param options: Optional Gymnasium reset options.
-        :return: The initial observation and an empty info dictionary.
+        Args:
+            seed: Optional random seed.
+            options: Optional Gymnasium reset options.
+        Returns:
+            The initial observation and an empty info dictionary.
         """
         super().reset(seed=seed)
 
@@ -150,8 +152,10 @@ class GridWorldEnv(gym.Env):
         """
         Execute one action in the environment.
 
-        :param action: Integer action id.
-        :return: Observation, reward, terminated flag, truncated flag and info.
+        Args:
+            action: Integer action id.
+        Returns:
+            Observation, reward, terminated flag, truncated flag and info.
         """
         if self.done:
             return self._get_obs(), 0.0, True, False, {}
@@ -232,11 +236,12 @@ class GridWorldEnv(gym.Env):
         """
         Resolve either a fixed or random position.
 
-        :param configured_position: Fixed position or None for random placement.
-        :param reserved: Positions already occupied by other special entities.
-        :param name: Human-readable position name for error messages.
-        :return: A valid position.
-
+        Args:
+            configured_position: Fixed position or None for random placement.
+            reserved: Positions already occupied by other special entities.
+            name: Human-readable position name for error messages.
+        Returns:
+            A valid position.
         Raises:
             ValueError: If the fixed position is invalid.
         """
@@ -260,8 +265,8 @@ class GridWorldEnv(gym.Env):
         """
         Add random obstacles without overlapping special entities.
 
-        :param reserved: Positions occupied by agent, key, door and goal.
-
+        Args:
+            reserved: Positions occupied by agent, key, door and goal.
         Raises:
             ValueError: If there are not enough free cells.
         """
@@ -276,9 +281,10 @@ class GridWorldEnv(gym.Env):
         """
         Sample one free position from the grid.
 
-        :param blocked: Positions that cannot be selected.
-        :return: A randomly selected free position.
-
+        Args:
+            blocked: Positions that cannot be selected.
+        Returns:
+            A randomly selected free position.
         Raises:
             ValueError: If no free position is available.
         """
@@ -298,7 +304,8 @@ class GridWorldEnv(gym.Env):
         """
         Return all positions inside the grid.
 
-        :return: A list of all valid grid coordinates.
+        Returns:
+            A list of all valid grid coordinates.
         """
         return [(x, y) for y in range(self.height) for x in range(self.width)]
 
@@ -309,9 +316,11 @@ class GridWorldEnv(gym.Env):
         Movement is ignored if the target tile is outside the grid, blocked by
         an obstacle, or is the locked goal tile.
 
-        :param dx: Horizontal movement delta.
-        :param dy: Vertical movement delta.
-        :return: None
+        Args:
+            dx: Horizontal movement delta.
+            dy: Vertical movement delta.
+        Returns:
+            None
         """
         x, y = self.agent_position
         next_position = (x + dx, y + dy)
@@ -345,8 +354,10 @@ class GridWorldEnv(gym.Env):
         """
         Check whether a position is inside the configured grid.
 
-        :param position: Position to validate.
-        :return: True if the position is inside the grid.
+        Args:
+            position: Position to validate.
+        Returns:
+            True if the position is inside the grid.
         """
         x, y = position
         return 0 <= x < self.width and 0 <= y < self.height
@@ -355,7 +366,8 @@ class GridWorldEnv(gym.Env):
         """
         Build the observation space for grid positions.
 
-        :return: A Gymnasium Box with dynamic bounds based on grid size.
+        Returns:
+            A Gymnasium Box with dynamic bounds based on grid size.
         """
         return spaces.Box(
             low=np.array([0, 0], dtype=np.int32),
@@ -368,7 +380,8 @@ class GridWorldEnv(gym.Env):
         """
         Build the current observation.
 
-        :return: Dictionary containing concrete environment state.
+        Returns:
+            Dictionary containing concrete environment state.
         """
         return {
             "agent": np.array(self.agent_position, dtype=np.int32),

@@ -13,6 +13,7 @@ class Domain:
     def __init__(self, tasks: List[Task]):
         """
         Initialize a new instance of Domain.
-        :param tasks: List of tasks in the domain.
+        Args:
+            tasks: List of tasks in the domain.
         """
         self.tasks = tasks

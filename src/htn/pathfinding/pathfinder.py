@@ -36,10 +36,11 @@ class Pathfinder(ABC, Generic[NodeT, ContextT]):
         """
         Finds a path from start to goal.
 
-        :param start: The initial node.
-        :param goal: The target node.
-        :param context: Extra pathfinding context.
-        :return: A list containing the path from start to goal.
-            Returns an empty list when no path exists.
+        Args:
+            start: The initial node.
+            goal: The target node.
+            context: Extra pathfinding context.
+        Returns:
+            A list containing the path from start to goal. Returns an empty list when no path exists.
         """
         pass

@@ -81,8 +81,10 @@ class Agent(AgentBase):
         4. removes successful tasks from the plan;
         5. clears the plan on failure.
 
-        :param world: Runtime world where actions are executed.
-        :return: Execution result for this tick.
+        Args:
+            world: Runtime world where actions are executed.
+        Returns:
+            Execution result for this tick.
         """
         replanned = False
         planned_tasks: list[str] = []
@@ -150,8 +152,10 @@ class Agent(AgentBase):
         planner. The plan is not immediately discarded; it is validated on the
         next tick, allowing still-valid plans to continue.
 
-        :param world_state: Updated symbolic world state.
-        :return: None
+        Args:
+            world_state: Updated symbolic world state.
+        Returns:
+            None
         """
         self.world_state = world_state.copy()
         self.planner.update_world_state(world_state)
@@ -161,7 +165,8 @@ class Agent(AgentBase):
         """
         Return the names of the current remaining plan tasks.
 
-        :return: List of task names.
+        Returns:
+            List of task names.
         """
         return [task.name for task in self.plan]
 
@@ -169,8 +174,8 @@ class Agent(AgentBase):
         """
         Decide whether the agent should request a new plan.
 
-        :return: True when the agent has no plan or the current plan became
-            invalid after a world-state change.
+        Returns:
+            True when the agent has no plan or the current plan became invalid after a world-state change.
         """
         if not self.plan:
             return True
@@ -191,7 +196,8 @@ class Agent(AgentBase):
         This allows future tasks to depend on effects produced by previous
         tasks in the same plan.
 
-        :return: True if the remaining plan is still executable.
+        Returns:
+            True if the remaining plan is still executable.
         """
         simulated_state = self.world_state.copy()
 

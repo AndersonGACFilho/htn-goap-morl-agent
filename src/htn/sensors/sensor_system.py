@@ -29,8 +29,10 @@ class SensorSystem(Generic[WorldT]):
         """
         Register a sensor.
 
-        :param sensor: Sensor to register.
-        :return: None.
+        Args:
+            sensor: Sensor to register.
+        Returns:
+            None.
         """
         self.sensors.append(sensor)
 
@@ -38,9 +40,11 @@ class SensorSystem(Generic[WorldT]):
         """
         Run all sensors and notify listeners after the symbolic state is updated.
 
-        :param world: Runtime world/environment adapter.
-        :param world_state: Symbolic HTN world state.
-        :return: None.
+        Args:
+            world: Runtime world/environment adapter.
+            world_state: Symbolic HTN world state.
+        Returns:
+            None.
         """
         for sensor in self.sensors:
             sensor.sense(world, world_state)

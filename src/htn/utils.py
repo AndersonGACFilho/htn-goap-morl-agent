@@ -7,8 +7,10 @@ def is_number(value: WorldValue) -> TypeGuard[int | float]:
     """
     Check whether a world value is numeric.
 
-    :param value: The value to check
-    :return: True if the value is an int or float
+    Args:
+        value: The value to check
+    Returns:
+        True if the value is an int or float
     """
     return type(value) in (int, float)
 
@@ -18,10 +20,12 @@ def check_condition(
 ) -> bool:
     """
     Checks if the current value satisfies the given condition.
-    :param current_value: The current value to check
-    :param operator: The operator to use for the comparison
-    :param expected_value: The expected value for the comparison
-    :return: True if the condition is satisfied, False otherwise
+    Args:
+        current_value: The current value to check
+        operator: The operator to use for the comparison
+        expected_value: The expected value for the comparison
+    Returns:
+        True if the condition is satisfied, False otherwise
     """
     if current_value is None or expected_value is None:
         raise ValueError("Cannot compare None values")
@@ -58,10 +62,12 @@ def apply_effect(
 ) -> WorldValue:
     """
     Applies the given effect to the current value based on the operator.
-    :param current_value: The current value to apply the effect to
-    :param operator: The operator to use for the effect
-    :param value: The value to apply the effect with
-    :return: The updated current value after applying the effect
+    Args:
+        current_value: The current value to apply the effect to
+        operator: The operator to use for the effect
+        value: The value to apply the effect with
+    Returns:
+        The updated current value after applying the effect
     """
     match operator:
         case "=":

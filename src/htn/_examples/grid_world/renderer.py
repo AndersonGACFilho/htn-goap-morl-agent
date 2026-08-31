@@ -47,8 +47,9 @@ class RichGridWorldRenderer:
         """
         Initialize the renderer.
 
-        :param: env: the current env config
-        :param theme: color theme for SVG export. Defaults to GridWorldTheme(GridWorldTheme.ORANGE).
+        Args:
+            None: env: the current env config
+            theme: color theme for SVG export. Defaults to GridWorldTheme(GridWorldTheme.ORANGE).
         """
         os.makedirs("images", exist_ok=True)
         self.console = Console(record=True, width=self.PANEL_WIDTH + 10, height=40)
@@ -75,15 +76,17 @@ class RichGridWorldRenderer:
         """
         Render the GridWorld environment centered in the terminal.
 
-        :param env: GridWorld-like environment.
-        :param banner: Optional one-off banner line (e.g. "Initial world:").
-        :param current_task: Optional currently executing task.
-        :param current_plan: Optional current symbolic plan (for the status line).
-        :param plan_announcement: Optional newly produced HTN plan to announce.
-        :param result_message: Optional outcome message for this tick.
-        :param result_style: the result line color
-        :param clear: Whether to clear the terminal before rendering.
-        :return: None
+        Args:
+            env: GridWorld-like environment.
+            banner: Optional one-off banner line (e.g. "Initial world:").
+            current_task: Optional currently executing task.
+            current_plan: Optional current symbolic plan (for the status line).
+            plan_announcement: Optional newly produced HTN plan to announce.
+            result_message: Optional outcome message for this tick.
+            result_style: the result line color
+            clear: Whether to clear the terminal before rendering.
+        Returns:
+            None
         """
         self.tick += 1
 
@@ -135,9 +138,11 @@ class RichGridWorldRenderer:
         Build a single, non-wrapping line that always occupies exactly
         one row of height, whether it has content or is blank.
 
-        :param content: Line text, or "" to reserve a blank line.
-        :param style: Rich style applied when content is present.
-        :return: A centered, non-wrapping Text renderable.
+        Args:
+            content: Line text, or "" to reserve a blank line.
+            style: Rich style applied when content is present.
+        Returns:
+            A centered, non-wrapping Text renderable.
         """
         text = Text(content, style=style if content else "", justify="center")
         text.no_wrap = True
@@ -155,10 +160,12 @@ class RichGridWorldRenderer:
         Print a standalone centered message (not part of an exported frame).
         Useful for final summaries or progress logs outside the tick loop.
 
-        :param message: Message to print.
-        :param style: Rich style for the message.
-        :param clear: Whether to clear the terminal before printing.
-        :return: None
+        Args:
+            message: Message to print.
+            style: Rich style for the message.
+            clear: Whether to clear the terminal before printing.
+        Returns:
+            None
         """
         if clear:
             self.console.clear()
@@ -177,9 +184,11 @@ class RichGridWorldRenderer:
         main loop anymore (folded into render() instead), kept for
         ad-hoc/debug use.
 
-        :param plan: Current symbolic plan.
-        :param clear: Whether to clear the terminal before printing.
-        :return: None
+        Args:
+            plan: Current symbolic plan.
+            clear: Whether to clear the terminal before printing.
+        Returns:
+            None
         """
         if clear:
             self.console.clear()
@@ -204,9 +213,11 @@ class RichGridWorldRenderer:
         the main loop anymore (folded into render() instead), kept for
         ad-hoc/debug use.
 
-        :param tick: Current execution tick.
-        :param task_name: Task being executed.
-        :return: None
+        Args:
+            tick: Current execution tick.
+            task_name: Task being executed.
+        Returns:
+            None
         """
         message = f"Tick {tick}: executing {task_name}"
         self.print_message(message, style="bold green")
@@ -215,8 +226,10 @@ class RichGridWorldRenderer:
         """
         Build the visual grid.
 
-        :param env: GridWorld-like environment.
-        :return: A Rich table representing the grid.
+        Args:
+            env: GridWorld-like environment.
+        Returns:
+            A Rich table representing the grid.
         """
         table = Table.grid(expand=False)
 
@@ -237,9 +250,11 @@ class RichGridWorldRenderer:
         """
         Build one styled cell.
 
-        :param env: GridWorld-like environment.
-        :param position: Cell position.
-        :return: Styled cell text.
+        Args:
+            env: GridWorld-like environment.
+            position: Cell position.
+        Returns:
+            Styled cell text.
         """
         if position == env.agent_position:
             return Text(" A ", style="bold white on blue")
@@ -269,10 +284,12 @@ class RichGridWorldRenderer:
         """
         Build the compact status line.
 
-        :param env: GridWorld-like environment.
-        :param current_task: Optional current task.
-        :param current_plan: Optional symbolic plan.
-        :return: A formatted status string.
+        Args:
+            env: GridWorld-like environment.
+            current_task: Optional current task.
+            current_plan: Optional symbolic plan.
+        Returns:
+            A formatted status string.
         """
         status_parts = [
             f"tick={self.tick}",
@@ -294,7 +311,8 @@ class RichGridWorldRenderer:
         """
         Exports the current tick into svg images
 
-        :return: the path to the generated image
+        Returns:
+            the path to the generated image
         """
         title = f"{' '.join(self.config)} Tick {self.tick}"
 

@@ -12,9 +12,11 @@ def action_from_step(
     """
     Convert a neighboring grid step into a GridWorld action id.
 
-    :param current: Current grid position.
-    :param next_position: Adjacent grid position to move to.
-    :return: GridWorld action id for the movement.
+    Args:
+        current: Current grid position.
+        next_position: Adjacent grid position to move to.
+    Returns:
+        GridWorld action id for the movement.
     """
     current_x, current_y = current
     next_x, next_y = next_position

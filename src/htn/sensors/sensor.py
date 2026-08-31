@@ -25,8 +25,10 @@ class Sensor(ABC, Generic[WorldT]):
         """
         Read the concrete world and update the symbolic world state.
 
-        :param world: Runtime world/environment adapter.
-        :param world_state: Symbolic HTN world state to update.
-        :return: None.
+        Args:
+            world: Runtime world/environment adapter.
+            world_state: Symbolic HTN world state to update.
+        Returns:
+            None.
         """
         pass

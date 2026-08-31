@@ -20,9 +20,10 @@ class GymWorld(World):
     def __init__(self, env: gym.Env, world_state: WorldState, agent: Agent):
         """
         Initializes GymWorld class
-        :param env: Gym environment
-        :param world_state: Gym world state
-        :param agent: Agent in the world
+        Args:
+            env: Gym environment
+            world_state: Gym world state
+            agent: Agent in the world
         """
         super().__init__(world_state, agent)
         self.env = env
@@ -34,7 +35,9 @@ class GymWorld(World):
     def update_from_obs(self, obs: object) -> None:
         """
         Override this method to update the GymWorld class
-        :param obs: The observation from the Gym environment
-        :return: None
+        Args:
+            obs: The observation from the Gym environment
+        Returns:
+            None
         """
         raise NotImplementedError("Override this method to update the GymWorld class")

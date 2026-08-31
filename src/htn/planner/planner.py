@@ -137,8 +137,10 @@ class Planner:
     def update_world_state(self, world_state: WorldState) -> None:
         """
         Updates the world state of the planner.
-        :param world_state: The new world state.
-        :return: None
+        Args:
+            world_state: The new world state.
+        Returns:
+            None
         """
         self.world_state_copy = world_state.copy()
         self._current_plan = []
@@ -146,6 +148,7 @@ class Planner:
     def __repr__(self) -> str:
         """
         Returns a string representation of the planner.
-        :return: A string representation of the planner.
+        Returns:
+            A string representation of the planner.
         """
         return f"Planner(domain={self.domain}, plan={self._current_plan}, world_state_copy={self.world_state_copy})"

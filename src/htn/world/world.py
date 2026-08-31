@@ -24,8 +24,9 @@ class World(ABC):
         """
         Initialize the world with shared state and an agent.
 
-        :param world_state: The world state used by the runtime.
-        :param agent: The agent acting in the world.
+        Args:
+            world_state: The world state used by the runtime.
+            agent: The agent acting in the world.
         """
         self.world_state = world_state
         self.agent = agent

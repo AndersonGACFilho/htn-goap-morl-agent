@@ -20,9 +20,9 @@ class Action(ABC):
         """
         Execute the action against the world.
 
-        :param world: The world where the action will be executed.
-        :return: ActionStatus.RUNNING if the action is still in progress.
-            ActionStatus.SUCCESS if the action finished successfully.
-            ActionStatus.FAILURE if the action failed.
+        Args:
+            world: The world where the action will be executed.
+        Returns:
+            ActionStatus.RUNNING if the action is still in progress. ActionStatus.SUCCESS if the action finished successfully. ActionStatus.FAILURE if the action failed.
         """
         pass

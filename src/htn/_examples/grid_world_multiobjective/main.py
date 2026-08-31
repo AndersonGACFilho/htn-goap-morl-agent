@@ -22,7 +22,8 @@ def run() -> None:
     it creates the environment, planner, agent, sensors, and renderer,
     then executes the simulation loop.
 
-    :return: None
+    Returns:
+        None
     """
     config = GridWorldConfig(
         width=10,

@@ -14,9 +14,11 @@ def are_preconditions_satisfied(
     """
     Checks whether all preconditions are satisfied by the given world state.
 
-    :param preconditions: The preconditions to check
-    :param world_state: The current world state
-    :return: True if all preconditions are satisfied, False otherwise
+    Args:
+        preconditions: The preconditions to check
+        world_state: The current world state
+    Returns:
+        True if all preconditions are satisfied, False otherwise
     """
     for key, condition in preconditions.items():
         if key not in world_state.state_space:

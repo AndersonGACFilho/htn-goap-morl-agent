@@ -31,10 +31,12 @@ class GridPathfinder(Pathfinder[Position, GridContext]):
         Pathfinder decides:
             which tile should be visited next.
 
-        :param start: Starting grid position.
-        :param goal: Target grid position.
-        :param context: Grid context containing width, height, and blocked positions.
-        :return: Path from start to goal, or an empty list if no path exists.
+        Args:
+            start: Starting grid position.
+            goal: Target grid position.
+            context: Grid context containing width, height, and blocked positions.
+        Returns:
+            Path from start to goal, or an empty list if no path exists.
         """
         if start == goal:
             return [start]
@@ -72,10 +74,12 @@ class GridPathfinder(Pathfinder[Position, GridContext]):
         """
         Yield valid neighboring positions for a grid cell.
 
-        :param position: Grid position whose neighbors should be found.
-        :param width: Grid width in tiles.
-        :param height: Grid height in tiles.
-        :return: Iterable of valid neighboring positions.
+        Args:
+            position: Grid position whose neighbors should be found.
+            width: Grid width in tiles.
+            height: Grid height in tiles.
+        Returns:
+            Iterable of valid neighboring positions.
         """
         x, y = position
 
@@ -98,9 +102,11 @@ class GridPathfinder(Pathfinder[Position, GridContext]):
         """
         Reconstruct a path from the predecessor map.
 
-        :param came_from: Mapping from each visited position to its predecessor.
-        :param goal: Goal position where reconstruction starts.
-        :return: Ordered path from start to goal.
+        Args:
+            came_from: Mapping from each visited position to its predecessor.
+            goal: Goal position where reconstruction starts.
+        Returns:
+            Ordered path from start to goal.
         """
         path: list[Position] = []
         current: Position | None = goal

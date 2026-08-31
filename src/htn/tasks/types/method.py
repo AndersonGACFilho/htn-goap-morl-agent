@@ -21,8 +21,9 @@ class Method:
         """
         Initialize a method with preconditions and tasks.
 
-        :param preconditions: The preconditions for the method
-        :param tasks: The tasks to be executed in the method
+        Args:
+            preconditions: The preconditions for the method
+            tasks: The tasks to be executed in the method
         """
         self.tasks = tasks
         self.preconditions = preconditions
@@ -31,8 +32,10 @@ class Method:
         """
         Get a task from the method by index.
 
-        :param index: The index of the task to retrieve
-        :return: The task at the specified index
+        Args:
+            index: The index of the task to retrieve
+        Returns:
+            The task at the specified index
         """
         return self.tasks[index]
 
@@ -40,7 +43,8 @@ class Method:
         """
         Get the tasks of the method.
 
-        :return: The tasks of the method
+        Returns:
+            The tasks of the method
         """
         return self.tasks
 
@@ -48,6 +52,7 @@ class Method:
         """
         Get the preconditions of the method.
 
-        :return: The preconditions of the method
+        Returns:
+            The preconditions of the method
         """
         return self.preconditions

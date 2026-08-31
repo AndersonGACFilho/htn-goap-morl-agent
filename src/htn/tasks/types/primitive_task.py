@@ -25,10 +25,11 @@ class PrimitiveTask(Task):
     ):
         """
         Initialize the new instance of the Task class.
-        :param name: The name of the task
-        :param action: The action that can be performed by the task
-        :param preconditions: The preconditions of the task
-        :param effects: The effects of the task
+        Args:
+            name: The name of the task
+            action: The action that can be performed by the task
+            preconditions: The preconditions of the task
+            effects: The effects of the task
         """
         super().__init__(name)
         self.action = action
@@ -38,7 +39,8 @@ class PrimitiveTask(Task):
     def get_action(self) -> Action:
         """
         Get the action that can be performed by the task.
-        :return: The action
+        Returns:
+            The action
         """
         return self.action
 
@@ -46,7 +48,8 @@ class PrimitiveTask(Task):
         """
         Get the preconditions of the task.
 
-        :return: The preconditions of the task
+        Returns:
+            The preconditions of the task
         """
         return self.preconditions
 
@@ -54,14 +57,16 @@ class PrimitiveTask(Task):
         """
         Get the effects of the task.
 
-        :return: The effects of the task
+        Returns:
+            The effects of the task
         """
         return self.effects
 
     def apply_effects(self, world_state: WorldState) -> None:
         """
         Applies the effects of the element to the given world state.
-        :param world_state: The world state to apply the effects to
+        Args:
+            world_state: The world state to apply the effects to
         """
         for key, effect in self.effects.items():
             operator, value = effect
@@ -75,8 +80,10 @@ class PrimitiveTask(Task):
     def check_preconditions(self, world_state: WorldState) -> bool:
         """
         Checks whether all preconditions are satisfied by the given world state.
-        :param world_state: The current world state
-        :return: True if all preconditions are satisfied, False otherwise
+        Args:
+            world_state: The current world state
+        Returns:
+            True if all preconditions are satisfied, False otherwise
         """
         return are_preconditions_satisfied(self.preconditions, world_state)
 
@@ -84,7 +91,8 @@ class PrimitiveTask(Task):
     def __str__(self):
         """
         ToString method
-        :return: A string representation of the task
+        Returns:
+            A string representation of the task
         """
         return str(
             {
@@ -97,6 +105,7 @@ class PrimitiveTask(Task):
     def __repr__(self):
         """
         Representation method
-        :return: A string representation of the task
+        Returns:
+            A string representation of the task
         """
         return str(self)

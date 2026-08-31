@@ -33,9 +33,10 @@ class GridWorld(World):
     ) -> None:
         """
         Initializes the GridWorld environment.
-        :param env: the environment to use
-        :param world_state: the world state to use
-        :param agent: the agent to use
+        Args:
+            env: the environment to use
+            world_state: the world state to use
+            agent: the agent to use
         """
         super().__init__(world_state, agent)
         self.env = env
@@ -62,8 +63,9 @@ class NavigateToPositionAction(Action):
     ) -> None:
         """
         Initializes the NavigateToPositionAction.
-        :param target: the target position
-        :param pathfinder: the pathfinder to use
+        Args:
+            target: the target position
+            pathfinder: the pathfinder to use
         """
         self.target = target
         self.pathfinder = pathfinder
@@ -71,8 +73,10 @@ class NavigateToPositionAction(Action):
     def execute(self, world: World) -> ActionStatus:
         """
         Executes the action of Navigation to the target position.
-        :param world: the world state to use
-        :return: the status of the action execution
+        Args:
+            world: the world state to use
+        Returns:
+            the status of the action execution
         """
         grid_world = cast(GridWorld, world)
         env = grid_world.env
@@ -117,8 +121,10 @@ class PickupKeyAction(Action):
     def execute(self, world: World) -> ActionStatus:
         """
         Executes the action of picking up the key.
-        :param world: the world state to use
-        :return: the status of the action execution
+        Args:
+            world: the world state to use
+        Returns:
+            the status of the action execution
         """
         grid_world = cast(GridWorld, world)
         env = grid_world.env
@@ -139,8 +145,10 @@ class OpenDoorAction(Action):
     def execute(self, world: World) -> ActionStatus:
         """
         Executes the action of opening the door.
-        :param world: the world state to use
-        :return: the status of the action execution
+        Args:
+            world: the world state to use
+        Returns:
+            the status of the action execution
         """
         grid_world = cast(GridWorld, world)
         env = grid_world.env

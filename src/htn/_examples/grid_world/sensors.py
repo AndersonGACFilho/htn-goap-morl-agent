@@ -14,9 +14,11 @@ class GridWorldSensor(Sensor[GridWorld]):
         """
         Read GridWorldEnv and update the HTN WorldState.
 
-        :param world: GridWorld runtime adapter.
-        :param world_state: Symbolic world state to update.
-        :return: None.
+        Args:
+            world: GridWorld runtime adapter.
+            world_state: Symbolic world state to update.
+        Returns:
+            None.
         """
         env = world.env
 

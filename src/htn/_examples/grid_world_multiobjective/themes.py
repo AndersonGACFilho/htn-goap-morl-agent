@@ -41,8 +41,10 @@ class GridWorldTheme:
 
     def __init__(self, name: str = ORANGE) -> None:
         """
-        :param name: One of GridWorldTheme.NORMAL or GridWorldTheme.ORANGE.
-        :raises ValueError: If `name` isn't a known preset.
+        Args:
+            name: One of GridWorldTheme.NORMAL or GridWorldTheme.ORANGE.
+        Raises:
+            ValueError: If `name` isn't a known preset.
         """
         if name not in self._PRESETS:
             available = ", ".join(self._PRESETS)

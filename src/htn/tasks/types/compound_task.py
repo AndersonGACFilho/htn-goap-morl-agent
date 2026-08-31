@@ -20,8 +20,9 @@ class CompoundTask(Task):
         """
         Initialize a compound task.
 
-        :param name: The name of the compound task
-        :param methods: The methods that can decompose the compound task
+        Args:
+            name: The name of the compound task
+            methods: The methods that can decompose the compound task
         """
         super().__init__(name)
         self.methods = methods
@@ -31,7 +32,8 @@ class CompoundTask(Task):
         """
         Get the methods of the compound task.
 
-        :return: The methods of the compound task
+        Returns:
+            The methods of the compound task
         """
         return self.methods
 
@@ -39,16 +41,20 @@ class CompoundTask(Task):
         """
         Get a method by its index.
 
-        :param index: The index of the method to retrieve
-        :return: The method at the specified index
+        Args:
+            index: The index of the method to retrieve
+        Returns:
+            The method at the specified index
         """
         return self.methods[index]
 
     def get_feasible_methods(self, world_state: WorldState) -> list[Method]:
         """
         Get the possible methods for the given world state, validated by preconditions.
-        :param world_state: The world state to validate preconditions for
-        :return: A list of applicable methods or an empty list if no applicable methods are found
+        Args:
+            world_state: The world state to validate preconditions for
+        Returns:
+            A list of applicable methods or an empty list if no applicable methods are found
         """
         feasible_methods = []
         for method in self.methods:

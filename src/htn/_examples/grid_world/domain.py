@@ -24,11 +24,13 @@ def _position_effects(
     """
     Build symbolic movement effects for the HTN planner.
 
-    :param position: Position reached by the navigation task.
-    :param at_key: Whether the agent should be considered at the key.
-    :param at_door: Whether the agent should be considered at the door.
-    :param at_goal: Whether the agent should be considered at the goal.
-    :return: Effects dictionary compatible with PrimitiveTask.
+    Args:
+        position: Position reached by the navigation task.
+        at_key: Whether the agent should be considered at the key.
+        at_door: Whether the agent should be considered at the door.
+        at_goal: Whether the agent should be considered at the goal.
+    Returns:
+        Effects dictionary compatible with PrimitiveTask.
     """
     x, y = position
 
@@ -52,8 +54,10 @@ def build_grid_world_domain(env: GridWorldEnv) -> Domain:
 
     Concrete coordinates are read from the current environment layout.
 
-    :param env: Configured GridWorld environment.
-    :return: HTN domain for the current GridWorld layout.
+    Args:
+        env: Configured GridWorld environment.
+    Returns:
+        HTN domain for the current GridWorld layout.
     """
     pathfinder = GridPathfinder()
 

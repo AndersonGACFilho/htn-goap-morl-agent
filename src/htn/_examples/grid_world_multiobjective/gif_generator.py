@@ -15,10 +15,12 @@ def create_gif(
 ):
     """
     Transform the input images and exports the gif into the output folder
-    :param images: all the images that are needed to gen the gif
-    :param output_dir: the output dir to be exported on
-    :param env: the current env config
-    :return: None
+    Args:
+        images: all the images that are needed to gen the gif
+        output_dir: the output dir to be exported on
+        env: the current env config
+    Returns:
+        None
     """
 
     config = [
