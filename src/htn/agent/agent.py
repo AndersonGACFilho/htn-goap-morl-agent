@@ -41,23 +41,32 @@ class Agent(AgentBase):
     """
     Agent that owns, validates, replans, and executes an HTN plan.
 
-    The planner only builds plans.
-    The agent is responsible for executing the current primitive task.
+    The planner only builds plans. The agent owns an independent copy of the
+    ordered root-task sequence and passes it to the planner whenever it needs
+    a new plan.
     """
 
     planner: Planner
     world_state: WorldState
     plan: list[Task]
+    tasks: list[Task]
 
-    def __init__(self, planner: Planner, world_state: WorldState) -> None:
+    def __init__(
+        self, planner: Planner, world_state: WorldState, tasks: list[Task]
+    ) -> None:
         """
         Initialize the agent.
 
-        :param planner: Planner used to build symbolic plans.
-        :param world_state: Initial symbolic world state observed by the agent.
+        Args:
+            planner: Planner used to build symbolic plans.
+            world_state: Initial symbolic world state observed by the agent.
+            tasks: Ordered root tasks used for every replanning attempt. The
+                agent copies this list, so later caller-side changes do not
+                alter its planning objective.
         """
         self.planner = planner
         self.world_state = world_state.copy()
+        self.tasks = tasks.copy()
         self.plan = []
         self._world_state_changed = False
 
@@ -79,12 +88,12 @@ class Agent(AgentBase):
         planned_tasks: list[str] = []
 
         if self._should_replan():
-            self.plan = self.planner.build_plan()
+            new_plan = self.planner.build_plan(self.tasks)
             self._world_state_changed = False
             replanned = True
-            planned_tasks = self.get_plan_names()
 
-            if not self.plan:
+            if new_plan is None:
+                self.plan = []
                 return AgentTickResult(
                     task_name=None,
                     status=None,
@@ -93,6 +102,9 @@ class Agent(AgentBase):
                     remaining_plan=[],
                     message="HTN: No valid plan.",
                 )
+
+            self.plan = new_plan
+            planned_tasks = self.get_plan_names()
 
         current_task = self.plan[0]
 

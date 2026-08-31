@@ -10,6 +10,7 @@ from htn.actions.action_status import ActionStatus
 from htn.agent.agent import Agent
 from htn.planner.planner import Planner
 from htn.sensors import SensorSystem
+from htn.strategy.depth_first_search_strategy import DepthFirstSearchStrategy
 from htn.world.state import WorldState
 
 
@@ -46,10 +47,13 @@ def run() -> None:
     env.reset(seed=42)
 
     world_state = WorldState()
+    strategy = DepthFirstSearchStrategy()
 
     domain = build_grid_world_domain(env)
-    planner = Planner(domain, world_state)
-    agent = Agent(planner, world_state)
+    planning_tasks = domain.tasks.copy()
+
+    planner = Planner(domain, world_state, strategy)
+    agent = Agent(planner, world_state, planning_tasks)
     world = GridWorld(env, world_state, agent)
 
     sensor_system: SensorSystem[GridWorld] = SensorSystem()

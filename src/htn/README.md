@@ -35,6 +35,7 @@ The `htn` module currently implements:
 - methods for task decomposition;
 - domain task container;
 - recursive HTN planner with method-level backtracking;
+- pluggable DFS and heuristic feasible-method ordering, plus an RL extension point;
 - simulated world state during planning;
 - abstract action interface with `ActionStatus` (`RUNNING`, `SUCCESS`, `FAILURE`);
 - multi-tick action execution;
@@ -54,11 +55,12 @@ symbolic facts from sensors, builds a valid HTN decomposition with simulated
 state and backtracking, executes primitive tasks over multiple ticks, and
 replans only when its remaining plan is no longer valid.
 
-The research architecture documented in the repository is intentionally ahead
-of the implementation. MORL-based selection among feasible HTN methods,
-vector rewards, and preference encoders are proposed next steps; they are not
-part of the current runtime. The existing baseline will be reused as the
-symbolic validity filter and execution foundation for those experiments.
+The research architecture documented in the repository remains ahead of the
+implementation. The runtime provides strategy hooks that order feasible HTN
+methods, including an RL extension point for a concrete strategy, but MORL
+training, vector rewards, and preference encoders remain proposed next steps.
+The existing baseline will be reused as the symbolic validity filter and
+execution foundation for those experiments.
 
 ---
 
@@ -77,6 +79,11 @@ src/htn/
 |   `-- pathfinder.py
 |-- planner/
 |   `-- planner.py
+|-- strategy/
+|   |-- depth_first_search_strategy.py
+|   |-- heuristic_based_search_strategy.py
+|   |-- method_selection_strategy.py
+|   `-- rl_based_search_strategy.py
 |-- sensors/
 |   |-- sensor.py
 |   `-- sensor_system.py
@@ -388,8 +395,9 @@ class GymWorld(World):
 The `Planner` decomposes domain tasks into an ordered list of executable tasks.
 
 ```python
-planner = Planner(domain, world_state)
-plan = planner.build_plan()  # -> list[Task]
+strategy = DepthFirstSearchStrategy()
+planner = Planner(domain, world_state, strategy)
+plan = planner.build_plan(domain.tasks)  # -> list[Task] | None
 ```
 
 The planner owns:
@@ -398,9 +406,13 @@ The planner owns:
 domain: Domain
 _current_plan: list[Task]      # kept for representation/legacy state; build_plan uses a local plan
 world_state_copy: WorldState   # snapshot used during planning
+_strategy: MethodSelectionStrategy  # orders feasible methods
 ```
 
-`build_plan()` returns a fresh local list each call. Runtime execution state is owned by the `Agent`.
+`build_plan(tasks)` returns a fresh local list each call. If a later root task
+fails, it returns the successfully planned prefix; it returns `None` when the
+first task cannot produce a primitive task. Runtime execution state is owned by
+the `Agent`.
 
 ---
 
@@ -416,7 +428,9 @@ recursive_planning(
 
 **Primitive task:** checks preconditions, appends task, applies effects to a simulated copy, and returns the updated branch.
 
-**Compound task:** gets feasible methods, tries each in order, recursively plans all subtasks, and returns on first success. It performs method-level backtracking if a subtask fails.
+**Compound task:** gets feasible methods, orders them through the configured
+strategy, recursively plans all subtasks, and returns on first success. It
+performs method-level backtracking if a subtask fails.
 
 ```text
 CompoundTask
@@ -446,7 +460,7 @@ Called by the agent when the sensor system fires. This refreshes the planner's s
 The `Agent` owns the current plan and drives the execution loop.
 
 ```python
-agent = Agent(planner, world_state)
+agent = Agent(planner, world_state, domain.tasks.copy())
 ```
 
 The agent owns:
@@ -455,6 +469,7 @@ The agent owns:
 planner: Planner
 world_state: WorldState   # last known symbolic state
 plan: list[Task]          # current remaining plan
+tasks: list[Task]         # copied root-task sequence for replanning
 _world_state_changed: bool
 ```
 
@@ -474,7 +489,7 @@ Each tick the agent:
 4. on `FAILURE`, clears the entire plan;
 5. on `RUNNING`, keeps the task at the front for the next tick.
 
-If a non-primitive task is found in the runtime plan, the agent skips it and returns an explanatory `AgentTickResult`. In normal operation `Planner.build_plan()` returns primitive tasks only.
+If a non-primitive task is found in the runtime plan, the agent skips it and returns an explanatory `AgentTickResult`. In normal operation `Planner.build_plan(tasks)` returns primitive tasks only.
 
 ---
 
@@ -546,7 +561,7 @@ sequenceDiagram
     Agent->>Agent: _should_replan()?
 
     alt needs replan
-        Agent->>Planner: build_plan()
+        Agent->>Planner: build_plan(tasks)
         Planner-->>Agent: list[Task]
     end
 
@@ -663,8 +678,10 @@ env.reset(seed=42)
 
 world_state = WorldState()
 domain = build_grid_world_domain(env)
-planner = Planner(domain, world_state)
-agent = Agent(planner, world_state)
+strategy = DepthFirstSearchStrategy()
+planning_tasks = domain.tasks.copy()
+planner = Planner(domain, world_state, strategy)
+agent = Agent(planner, world_state, planning_tasks)
 world = GridWorld(env, world_state, agent)
 
 sensor_system = SensorSystem()
