@@ -43,6 +43,8 @@
   \node[smallblock] (mone) at (-2.5,-9.7) {$M_1$};
   \node[smallblock] (mtwo) at (0,-9.7) {$M_2$};
   \node[smallblock] (mn) at (2.5,-9.7) {$M_n$};
+  \node[htn, densely dashed, text width=34mm, font=\scriptsize] (baseline) at (-6.6,-10.9)
+    {Baseline implementado\\\texttt{MethodSelectionStrategy}\\DFS / heurística / gancho RL};
   \node[morl] (selector) at (0,-11.5) {MORL condicionado por preferências\\$Q_\theta(C_t,WS_t,M_i,\mathbf{w}_t)$};
   \node[morl] (selected) at (0,-13.1) {Método selecionado\\$M_t^*=\arg\max_{M_i\in M_{valid}} U_{\mathbf{w}_t}$};
   \node[htn] (decompose) at (0,-14.8) {Decomposição HTN\\expandir somente $M_t^*$};
@@ -74,6 +76,8 @@
   \draw[htnarrow] (valid) -- (mone);
   \draw[htnarrow] (valid) -- (mtwo);
   \draw[htnarrow] (valid) -- (mn);
+  \draw[htnarrow, densely dashed] (valid.west) --
+    node[labeltext, pos=.5, above] {ordena} (baseline.east);
   \draw[morlarrow] (mone) -- (selector);
   \draw[morlarrow] (mtwo) -- (selector);
   \draw[morlarrow] (mn) -- (selector);
@@ -104,8 +108,9 @@
 
   \node[draw=black!45, rounded corners=1.5mm, align=left, font=\scriptsize,
     text width=51mm, inner sep=3mm] at (5.9,-24.3) {\textbf{Leitura do fluxo}\\
-    HTN define validade e decomposição; a fonte fornece preferências; MORL
-    ranqueia apenas métodos válidos. A recuperação por falha é excepcional e
-    não corresponde ao caminho normal da decisão online.};
+    O baseline implementado ordena métodos viáveis e preserva o backtracking.
+    A fonte fornece preferências e o MORL, ainda futuro, seleciona diretamente
+    apenas métodos válidos.
+    A recuperação por falha é excecional.};
 \end{tikzpicture}
 \end{document}

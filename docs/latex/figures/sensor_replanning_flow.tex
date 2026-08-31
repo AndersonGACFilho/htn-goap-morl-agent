@@ -21,6 +21,10 @@
     \node[decision, below=of validate] (valid) {O plano continua válido?};
     \node[symbolic, below left=of valid] (keep) {Manter execução do plano};
     \node[control, below right=of valid] (replan) {Solicitar novo plano HTN};
+    \node[control, below=of replan] (tasks) {Agente fornece a cópia\\
+        das tarefas-raiz};
+    \node[symbolic, below=of tasks] (strategy) {Planner ordena métodos viáveis\\
+        com estratégia de seleção};
 
     \draw[arrow, gamegreen] (env) -- (sensor);
     \draw[arrow, htnblue] (sensor) -- (state);
@@ -29,9 +33,13 @@
     \draw[arrow] (validate) -- (valid);
     \draw[arrow, htnblue] (valid) -- node[above left] {sim} (keep);
     \draw[arrow, fallbackorange] (valid) -- node[above right] {não} (replan);
+    \draw[arrow, fallbackorange] (replan) -- (tasks);
+    \draw[arrow, htnblue] (tasks) -- (strategy);
 \end{tikzpicture}
 \caption{Atualização sensorial e replanejamento preguiçoso. Uma mudança de
 estado não descarta imediatamente o plano: o agente valida o plano remanescente
-no tick seguinte e só solicita novo planejamento se ele se tornou inválido.}
+no tick seguinte e só solicita novo planejamento se ele se tornou inválido.
+Ao replanejar, o agente fornece sua cópia das tarefas-raiz; o planner aplica a
+estratégia configurada para ordenar apenas os métodos já viáveis.}
 \label{fig:sensores-replanejamento}
 \end{figure}

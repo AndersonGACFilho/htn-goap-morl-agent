@@ -4,20 +4,27 @@
 
 \section{Componentes disponíveis}
 
-Até agosto de 2026, a arquitetura completa ainda não está implementada. O
-baseline disponível já reúne a representação simbólica do estado,
+Até agosto de 2026, a arquitetura completa ainda não está implementada.
+O baseline disponível já reúne a representação simbólica do estado,
 pré-condições, efeitos, tarefas primitivas e compostas, métodos de
 decomposição, domínio HTN e um \textit{planner} recursivo com \textit{backtracking}.
 Ele também inclui o agente executor orientado a \textit{ticks}, sensores para
 atualização do estado, replanejamento inicial, uma abstração de \textit{pathfinding}
 com BFS para o GridWorld, visualizador em terminal e documentação técnica
 inicial.
+A seleção de métodos aplicáveis agora é uma extensão explícita por
+meio de \texttt{MethodSelectionStrategy}: DFS preserva a ordem declarada do
+domínio, a estratégia heurística permite ranqueamento definido pela aplicação,
+e a estratégia RL fornece um gancho para uma implementação concreta.
 
 \section{Interpretação correta do estágio atual}
 
 O código existente demonstra a infraestrutura simbólica e operacional
 necessária para decompor e executar tarefas.
-Ele ainda seleciona métodos por lógica determinística do planner.
+O baseline executável ainda usa DFS nos exemplos e mantém o backtracking do
+planner após a ordenação dos métodos.
+O agente conserva uma cópia das tarefas-raiz e a entrega ao planner em cada
+tentativa de replanejamento.
 Não existe, neste estágio, política MORL treinada, vetor dinâmico de
 preferências integrado ao planner ou máscara de métodos utilizada por um
 modelo aprendido.
@@ -28,21 +35,25 @@ validação da hipótese completa.
 \section{Lacunas para a nova formulação}
 
 Para a nova formulação, o \textit{planner} deverá expor os métodos aplicáveis
-com identificadores e observações estáveis. Também será necessário implementar
-perfis fixos e regras explícitas para $\mathbf{w}_t$, modelar o codificador
-relacional de preferências, definir objetivos, recompensas vetoriais e o
-horizonte de crédito de cada escolha hierárquica. A etapa de aprendizado inclui
-treinamento e inferência MORL com máscara de validade, comparados a baselines de
-ordem fixa, prioridade estática e utilidade manual. Por fim, logs completos de
-decisão, testes unitários e de integração, experimentos automatizados e um
-protocolo estatístico com cenários e sementes repetidas completarão a avaliação.
+com identificadores e observações estáveis.
+Também será necessário implementar perfis fixos e regras explícitas para $\mathbf{w}_t$,
+modelar o codificador relacional de preferências, definir objetivos, recompensas
+vetoriais e o horizonte de crédito de cada escolha hierárquica.
+A etapa de aprendizado inclui treinamento e inferência MORL com máscara de
+validade, comparados a baselines de ordem fixa, prioridade estática e utilidade
+manual.
+Por fim, logs completos de decisão, testes unitários e de integração, experimentos
+automatizados e um protocolo estatístico com cenários e sementes repetidas
+completarão a avaliação.
 
 \section{Compatibilidade do baseline com a proposta}
 
 A implementação atual não precisa ser descartada.
 Tarefas compostas, métodos, pré-condições, efeitos, sensores e replanejamento
 são diretamente reutilizáveis.
-A principal mudança arquitetural é transformar a seleção de método em um ponto
-de extensão explícito e incluir a entrada de preferência nessa interface.
+A principal mudança arquitetural já realizada é transformar a seleção de método
+em um ponto de extensão explícito.
+A futura entrada de preferência deverá ser integrada a uma estratégia concreta,
+sem substituir as pré-condições simbólicas nem o backtracking do HTN.
 A execução de tarefas primitivas continua separada e permanece determinística
 no escopo inicial.

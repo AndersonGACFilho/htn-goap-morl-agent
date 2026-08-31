@@ -41,6 +41,11 @@
     \draw[arrow, htnblue] (compound) -- (filter);
     \draw[arrow, htnblue] (filter) -- (mask);
 
+    \node[htn, dashed, left=45mm of mask] (baseline)
+        {Implemented Baseline\\\texttt{MethodSelectionStrategy}\\DFS / heuristic / RL hook};
+    \draw[arrow, htnblue, dashed] (mask.west) --
+        node[above, align=center] {orders feasible\\methods} (baseline.east);
+
     \node[morl, below=10mm of mask] (morl)
         {Preference-Conditioned MORL\\$\mathbf{Q}_{\theta}(C_t,WS_t,M_i,\mathbf{w}_t)$};
     \draw[arrow, morlred] (mask) -- (morl);
@@ -58,6 +63,9 @@
         {Resulting Task Network};
     \draw[arrow, htnblue] (selected) -- (decompose);
     \draw[arrow, htnblue] (decompose) -- (network);
+    \draw[arrow, htnblue, dashed, rounded corners] (baseline.south)
+        |- node[pos=.25, left, align=right]
+        {ordered exploration\\and backtracking} (network.west);
 
     \node[htn, below left=11mm and 19mm of network] (primitive)
         {Primitive Tasks};
@@ -75,8 +83,10 @@
 \end{tikzpicture}%
 }
 \caption{Arquitetura proposta para seleção online de métodos HTN guiada por MORL.
-O HTN determina a máscara de métodos aplicáveis; o MORL seleciona diretamente um
-único método $M_t^*$ condicionado por $WS_t$ e $\mathbf{w}_t$. Apenas o método
-selecionado é decomposto, e a seleção se repete em subtarefas compostas.}
+As linhas tracejadas mostram o baseline já implementado: uma
+\texttt{MethodSelectionStrategy} ordena métodos aplicáveis e o planner explora
+os candidatos com backtracking. O caminho em vermelho permanece futuro: MORL
+seleciona diretamente um único método $M_t^*$ condicionado por $WS_t$ e
+$\mathbf{w}_t$.}
 \label{fig:htn-morl-architecture}
 \end{figure}
