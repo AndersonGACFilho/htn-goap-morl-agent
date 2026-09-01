@@ -96,7 +96,14 @@ unlock = PrimitiveTask(
 
 enter = CompoundTask(
     name="enter_room",
-    methods=[Method(preconditions={"door_open": ("=", True)}, tasks=[unlock])],
+    methods=[
+        Method(
+            id="enter_room.through_open_door",
+            name="Enter through open door",
+            preconditions={"door_open": ("=", True)},
+            tasks=[unlock],
+        )
+    ],
 )
 
 domain = Domain(tasks=[enter])

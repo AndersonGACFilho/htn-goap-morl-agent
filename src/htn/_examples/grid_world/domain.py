@@ -145,12 +145,16 @@ def build_grid_world_domain(env: GridWorldEnv) -> Domain:
         name="ensure_has_key",
         methods=[
             Method(
+                id="ensure_has_key.already_has_key",
+                name="Already has key",
                 preconditions={
                     "has_key": ("=", True),
                 },
                 tasks=[],
             ),
             Method(
+                id="ensure_has_key.acquire_key",
+                name="Acquire key",
                 preconditions={
                     "has_key": ("=", False),
                 },
@@ -166,12 +170,16 @@ def build_grid_world_domain(env: GridWorldEnv) -> Domain:
         name="ensure_door_open",
         methods=[
             Method(
+                id="ensure_door_open.already_open",
+                name="Door already open",
                 preconditions={
                     "door_open": ("=", True),
                 },
                 tasks=[],
             ),
             Method(
+                id="ensure_door_open.open_door",
+                name="Open door",
                 preconditions={
                     "door_open": ("=", False),
                     "has_key": ("=", True),
@@ -188,6 +196,8 @@ def build_grid_world_domain(env: GridWorldEnv) -> Domain:
         name="escape_grid",
         methods=[
             Method(
+                id="escape_grid.exit_through_open_door",
+                name="Exit through open door",
                 preconditions={
                     "done": ("=", False),
                     "door_open": ("=", True),
@@ -197,6 +207,8 @@ def build_grid_world_domain(env: GridWorldEnv) -> Domain:
                 ],
             ),
             Method(
+                id="escape_grid.prepare_and_exit",
+                name="Prepare and exit",
                 preconditions={
                     "done": ("=", False),
                     "door_open": ("=", False),

@@ -23,8 +23,27 @@ class CompoundTask(Task):
         Args:
             name: The name of the compound task
             methods: The methods that can decompose the compound task
+        Raises:
+            ValueError: If two methods have the same identifier.
         """
         super().__init__(name)
+
+        seen_ids: set[str] = set()
+        duplicate_ids: set[str] = set()
+
+        for method in methods:
+            if method.id in seen_ids:
+                duplicate_ids.add(method.id)
+
+            seen_ids.add(method.id)
+
+        if duplicate_ids:
+            formatted_ids = ", ".join(sorted(duplicate_ids))
+            raise ValueError(
+                f"Compound task '{name}' contains duplicate method ids: "
+                f"{formatted_ids}."
+            )
+
         self.methods = methods
 
     # Getters

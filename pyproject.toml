@@ -38,6 +38,7 @@ dependencies = [
     "resvg-py>=0.3.4",
     "latexmk>=0.0.2",
     "mkdocs>=1.6.1",
+    "ipykernel>=7.3.0",
 ]
 
 [tool.ruff]

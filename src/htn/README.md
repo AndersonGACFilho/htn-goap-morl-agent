@@ -222,6 +222,8 @@ A `Method` represents one possible decomposition of a compound task.
 
 ```python
 Method(
+    id="enter_room.with_key",
+    name="Enter room with key",
     preconditions={"has_key": ("=", True)},
     tasks=[go_to_door, open_door, enter_room],
 )
@@ -231,6 +233,8 @@ Methods can have an empty task list as a no-op branch:
 
 ```python
 Method(
+    id="ensure_has_key.already_has_key",
+    name="Already has key",
     preconditions={"has_key": ("=", True)},
     tasks=[],  # key is already held
 )
